@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Contact extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'contact';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',     
+        'title',     
+        'content',    
+        'status',     
+        'created_by', 
+        'updated_by', 
+        'reply_id',   
+    ];
+
+    protected $dates = ['deleted_at'];
+}
