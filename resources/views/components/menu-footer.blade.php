@@ -1,3 +1,3 @@
-<div>
-    <!-- Order your soul. Reduce your wants. - Augustine -->
-</div>
+@foreach ($menu_list as $menu_item)
+    <x-menu-footer-item :menuitem="$menu_item" />
+@endforeach

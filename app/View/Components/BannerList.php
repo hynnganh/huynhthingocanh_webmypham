@@ -1,28 +1,23 @@
 <?php
 
+
 namespace App\View\Components;
 
+use App\Models\Banner;
 use Illuminate\View\Component;
 
 class BannerList extends Component
 {
-    /**
-     * Create a new component instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
+    public function render(): View|Closure|string
+{
+    $banner_list = Banner::where('status', 1)
+        ->where('position', 'slideshow') 
+        ->orderBy('sort_order')
+        ->get();
 
-    /**
-     * Get the view / contents that represent the component.
-     *
-     * @return \Illuminate\Contracts\View\View|\Closure|string
-     */
-    public function render()
-    {
-        return view('components.banner-list');
-    }
+    return view('components.banner-list', compact('banner_list'));
 }
+
+}
+
+

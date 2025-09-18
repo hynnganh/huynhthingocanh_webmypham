@@ -25,6 +25,6 @@ class ProductSale extends Component
             ->take(4)
             ->get();
 
-        return view('components.product-sale', compact('product'));
+        return view('components.product-sale', compact('product_list'));
     }
 }

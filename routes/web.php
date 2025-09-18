@@ -7,7 +7,7 @@ use App\Http\Controllers\frontend\ProductController as ControllerSanPham;
 use App\Http\Controllers\frontend\ContactController as ControllerLienHe;
 use App\Http\Controllers\frontend\CategoryController as ControllerDanhMuc;
 use App\Http\Controllers\frontend\PostController as ControllerBaiViet;
-
+use App\Http\Controllers\frontend\AuthController;
 // ---------------- Frontend -----------------
 
 // Home
@@ -29,16 +29,15 @@ Route::get('/danh-muc/{slug}', [ControllerDanhMuc::class, 'showCategory'])->name
 Route::get('/bai-viet', [ControllerBaiViet::class, 'index'])->name('post.index');
 Route::get('/bai-viet/{post}', [ControllerBaiViet::class, 'show'])->name('site.post.show');
 
-// Static page (About/Blog)
-Route::view('/gioi-thieu', 'frontend.blog')->name('site.blog');
-Route::controller(ControllerNguoiDung::class)->group(function () {
-    Route::get('/dang-nhap', 'showLoginForm')->name('login');
-    Route::post('/dang-nhap', 'login');   
-    Route::get('/dang-ky', 'showRegisterForm')->name('register');
-    Route::post('/dang-ky', 'register');
-    Route::post('/dang-xuat', 'logout')->name('logout');
-    Route::get('/tai-khoan', 'account')->name('account');
-});
+Route::get('/dang-nhap', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/dang-nhap', [AuthController::class, 'login']);
+
+Route::get('/dang-ky', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/dang-ky', [AuthController::class, 'register']);
+
+Route::get('/tai-khoan', [AuthController::class, 'account'])->name('account');
+Route::post('/dang-xuat', [AuthController::class, 'logout'])->name('logout');
+
 
 Route::prefix('cart')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('cart.index');

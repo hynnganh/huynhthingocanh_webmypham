@@ -30,7 +30,7 @@
                 <div class="w-1/4">
                     <div class="logo flex justify-start">
                         <a href="">
-                            <img src="http://localhost/webmypham/resources/assets/img/logo.jpg" alt="Logo"
+                            <img src="http://localhost/assets/img/logo.jpg" alt="Logo"
                                 class="w-24 h-24 object-contain" />
                         </a>
                     </div>
@@ -49,198 +49,91 @@
 
                 <!-- Shop Menu Section -->
                 <div class="w-1/4 items-center">
-    <div class="shop-menu">
-        <ul class="flex justify-end space-x-6">
-            <!-- Tài khoản -->
-            <li class="relative group">
-                <a href="#" class="flex items-center space-x-2 border border-[#F7A7C1] rounded-lg p-2 hover:bg-[#F7A7C1] hover:text-white transition duration-300">
-                    <i class="fa fa-user"></i>
-                    <span>
+        <div class="shop-menu">
+            <ul class="flex justify-end space-x-6">
+                <!-- Tài khoản -->
+                <li class="relative group">
+                    <a href="#" class="flex items-center space-x-2 border border-[#F7A7C1] rounded-lg p-2 hover:bg-[#F7A7C1] hover:text-white transition duration-300">
+                        <i class="fa fa-user"></i>
+                        <span>
+                            @if (Auth::check())
+                                {{ Auth::user()->name }}
+                            @else
+                                Tài Khoản
+                            @endif
+                        </span>
+                    </a>
+
+                    <!-- Dropdown Tài khoản -->
+                    <ul class="absolute left-0 hidden group-hover:block bg-white text-gray-800 shadow-lg rounded-lg pt-2 min-w-[180px] z-50">
                         @if (Auth::check())
-                            {{ Auth::user()->name }}
-                        @else
-                            Tài Khoản
-                        @endif
-                    </span>
-                </a>
-
-                <!-- Dropdown Tài khoản -->
-                <ul class="absolute left-0 hidden group-hover:block bg-white text-gray-800 shadow-lg rounded-lg pt-2 min-w-[180px] z-50">
-                    @if (Auth::check())
-                        <!-- Nếu đã đăng nhập -->
-                        <li>
-                            <a href="{{ route('account') }}" class="block px-4 py-2 hover:bg-gray-100 rounded-t-lg">
-                                Tài khoản
-                            </a>
-                        </li>
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-b-lg">
-                                    Đăng xuất
-                                </button>
-                            </form>
-                        </li>
-
-                        <!-- Nếu là admin -->
-                        {{-- @if(Auth::user()->roles == 'admin')
+                            <!-- Nếu đã đăng nhập -->
                             <li>
-                                <a href="{{ route('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100 rounded-b-lg">
-                                    Quản trị viên
+                                <a href="{{ route('account') }}" class="block px-4 py-2 hover:bg-gray-100 rounded-t-lg">
+                                    Tài khoản
                                 </a>
                             </li>
-                        @endif --}}
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-b-lg">
+                                        Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
 
-                    @else
-                        <!-- Nếu chưa đăng nhập -->
-                        <li>
-                            <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-gray-100 rounded-t-lg">
-                                Đăng nhập
-                            </a>
-                        </li>
-                    @endif
+                            <!-- Nếu là admin -->
+                            {{-- @if(Auth::user()->roles == 'admin')
+                                <li>
+                                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100 rounded-b-lg">
+                                        Quản trị viên
+                                    </a>
+                                </li>
+                            @endif --}}
 
-                </ul>
-            </li>
+                        @else
+                            <!-- Nếu chưa đăng nhập -->
+                            <li>
+                                <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-gray-100 rounded-t-lg">
+                                    Đăng nhập
+                                </a>
+                            </li>
+                        @endif
 
-            <!-- Giỏ hàng -->
-            <li>
-                <a href="{{ route('cart.index') }}" class="flex items-center space-x-2 border border-[#F7A7C1] rounded-lg p-2 hover:bg-[#F7A7C1] hover:text-white transition duration-300">
-                    <i class="fa fa-shopping-cart"></i>
-                    <span>Giỏ hàng</span>
-                </a>
-            </li>
-        </ul>
-    </div>
-</div>
+                    </ul>
+                </li>
 
-
-            </div>
-        </div>
-    </header>
-
-
-    <nav class="bg-[#F7A7C1]">
-        <div class="container mx-auto px-1">
-            <div class="mainmenu w-full text-center font-bold">
-                <ul class="grid grid-cols-6 gap-2 py-2">
-            <!-- <x-main-menu /> -->
-             <li class="border-1 border-[#F191A8] rounded-lg hover:bg-[#F191A8] hover:text-white p-2">
-                <a href="" class="text-white hover:text-white">Trang Chủ</a>
-            </li>
-            <li class="border-1 border-[#F191A8] rounded-lg hover:bg-[#F191A8] hover:text-white p-2">
-                <a href="" class="text-white hover:text-white">Liên Hệ</a>
-            </li>
-            <li class="border-1 border-[#F191A8] rounded-lg hover:bg-[#F191A8] hover:text-white p-2">
-                <a href="" class="text-white hover:text-white">Bài Viết</a>
-            </li>
-            <li class="border-1 border-[#F191A8] rounded-lg hover:bg-[#F191A8] hover:text-white p-2">
-                <a href="" class="text-white hover:text-white">Đăng Nhập</a>
-            </li>
-        </ul>
-    </div>
-        </div>
-    </nav>
-    <section>
-        <!-- <x-banner-list /> -->
-         <section id="home-banner" class="my-6">
-            <div class="container mx-auto px-4">
-                <a href=""> <!-- link banner -->
-                    <img src="http://localhost/webmypham/public/assets/img/banner1.png" alt="Logo" class="w-32 h-auto">
-                        alt="Banner 1" 
-                        class="w-full h-auto rounded-lg shadow-md hover:scale-105 transition-transform">
-                </a>
-            </div>
-        </section>
-
-    </section>
-
-    {{ $slot }}
-
-<div class="container mx-auto my-8 px-4">
-    <div class="flex flex-col lg:flex-row gap-6">
-
-        <!-- Sidebar: Cột trái -->
-        <aside class="w-full lg:w-1/4 bg-white p-4 rounded-lg shadow-md border max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
-            
-            {{-- Category List giả lập --}}
-            <h3 class="text-lg font-bold mb-3">Danh mục</h3>
-            <ul class="space-y-2">
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Sữa rửa mặt</a></li>
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Kem dưỡng da</a></li>
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Son môi</a></li>
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Nước hoa</a></li>
+                <!-- Giỏ hàng -->
+                <li>
+                    <a href="{{ route('cart.index') }}" class="flex items-center space-x-2 border border-[#F7A7C1] rounded-lg p-2 hover:bg-[#F7A7C1] hover:text-white transition duration-300">
+                        <i class="fa fa-shopping-cart"></i>
+                        <span>Giỏ hàng</span>
+                    </a>
+                </li>
             </ul>
+        </div>
+    </div>
 
-            {{-- Brand List giả lập --}}
-            <h3 class="text-lg font-bold mt-6 mb-3">Thương hiệu</h3>
-            <ul class="space-y-2">
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Brand A</a></li>
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Brand B</a></li>
-                <li><a href="#" class="text-gray-800 hover:text-pink-600">Brand C</a></li>
-            </ul>
-        </aside>
 
-        <!-- Sản phẩm -->
-        <section class="w-full lg:w-3/4">
-            <h1 class="text-3xl mb-6 text-center font-mono text-pink-600">Sản phẩm</h1>
-
-            {{-- Dữ liệu giả lập --}}
-            @php
-                $product_list = [
-                    (object)[
-                        'name' => 'Sữa rửa mặt hồng',
-                        'slug' => 'sua-rua-mat-hong',
-                        'price' => 150000,
-                        'sale_price' => 120000,
-                        'image' => 'product1.jpg',
-                    ],
-                    (object)[
-                        'name' => 'Kem dưỡng da ban đêm',
-                        'slug' => 'kem-duong-da-ban-dem',
-                        'price' => 250000,
-                        'sale_price' => 200000,
-                        'image' => 'product2.jpg',
-                    ],
-                    (object)[
-                        'name' => 'Son môi hồng nude',
-                        'slug' => 'son-moi-hong-nude',
-                        'price' => 180000,
-                        'sale_price' => null,
-                        'image' => 'product3.jpg',
-                    ],
-                ];
-            @endphp
-
-            @if (count($product_list))
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                    @foreach ($product_list as $product)
-                        <div class="border rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                            <a href="#">
-                                <img src="{{ asset('assets/images/products/'.$product->image) }}" alt="{{ $product->name }}" class="w-full h-48 object-cover">
-                            </a>
-                            <div class="p-4">
-                                <h3 class="text-lg font-semibold mb-2">{{ $product->name }}</h3>
-                                <p class="text-pink-500 font-bold mb-2">
-                                    @if($product->sale_price)
-                                        <span class="line-through text-gray-400 mr-2">{{ number_format($product->price) }}₫</span>
-                                        {{ number_format($product->sale_price) }}₫
-                                    @else
-                                        {{ number_format($product->price) }}₫
-                                    @endif
-                                </p>
-                                <a href="#" class="bg-[#F7A7C1] px-4 py-2 text-white rounded hover:bg-[#F191A8] transition">Thêm vào giỏ</a>
-                            </div>
-                        </div>
-                    @endforeach
                 </div>
-            @else
-                <p class="text-center text-gray-500">Không có sản phẩm nào phù hợp.</p>
-            @endif
+            </div>
+        </header>
+
+
+        <nav class="bg-[#F7A7C1]">
+            <div class="container mx-auto px-1">
+                <div class="mainmenu w-full text-center font-bold">
+                    <x-main-menu />
+                </div>
+            </div>
+        </nav>
+
+        <section>
+            <x-banner-list />
         </section>
 
-    </div>
-</div>
+        {{ $slot }}
+
 
 
     <footer class="bg-[#F7A7C1] text-white py-8">
@@ -290,12 +183,12 @@
                     <h4 class="text-xl font-semibold mb-4">Thông tin thanh toán</h4>
                     <div class="flex justify-center space-x-6">
                         <div class="flex flex-col items-center">
-                            <img src="http://localhost/webmypham/resources/assets/img/momo.jpg"
+                            <img src="http://localhost/assets/img/momo.jpg"
                                 alt="MoMo QR Code" class="w-40 h-40 object-cover rounded-md shadow-lg mb-3" />
                             <span class="text-lg font-semibold text-gray-800">MoMo</span>
                         </div>
                         <div class="flex flex-col items-center">
-                            <img src="http://localhost/webmypham/resources/assets/img/bidv.jpg"
+                            <img src="http://localhost/assets/img/bidv.jpg"
                                 alt="BIDV QR Code" class="w-40 h-40 object-cover rounded-md shadow-lg mb-3" />
                             <span class="text-lg font-semibold text-gray-800">BIDV</span>
                         </div>
