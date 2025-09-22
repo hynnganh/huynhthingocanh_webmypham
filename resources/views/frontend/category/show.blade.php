@@ -4,7 +4,7 @@
     </x-slot:title>
     
     <main class="py-10 bg-gray-50">
-        <div class="container mx-auto px-4">
+        <div class="max-w-[1400px] mx-auto my-8 px-4">
             
             <!-- Tiêu đề trang -->
             <h1 class="text-3xl font-bold text-center text-[#F7A7C1] mb-8">Sản phẩm trong danh mục "{{ $category->name }}"</h1>
@@ -17,15 +17,13 @@
             @endif
 
             <!-- Hiển thị sản phẩm thuộc danh mục -->
-            <div class="products">
+            <div class="products ">
                 @if($products->count())
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach($products as $product)
                         <x-product-card :productrow="$product" />
-
-                        @endforeach
-                        
-                    </div>
+                    @endforeach
+                </div>
 
                     <!-- Phân trang -->
                     <div class="pagination mt-6 text-center">

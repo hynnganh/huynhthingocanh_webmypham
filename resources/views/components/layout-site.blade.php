@@ -121,12 +121,14 @@
 
 
         <nav class="bg-[#F7A7C1]">
-            <div class="container mx-auto px-1">
-                <div class="mainmenu w-full text-center font-bold">
-                    <x-main-menu />
-                </div>
-            </div>
-        </nav>
+        <div class="container mx-auto px-1">
+            <div class="mainmenu w-full text-center font-bold">
+                <ul class="grid grid-cols-6 gap-2 py-2">
+            <x-main-menu />
+        </ul>
+    </div>
+        </div>
+    </nav>
 
         <section>
             <x-banner-list />

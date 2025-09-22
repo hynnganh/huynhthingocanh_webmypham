@@ -67,9 +67,10 @@ s                            @if($product->price_sale < $product->price_root)
                 @if($product_list->count() > 0)
                     @foreach($product_list as $product_row)
                         <div class="flex items-center bg-gray-100 p-4 rounded-lg shadow-md mb-4">
-                            <img src="{{ asset('resources/assets/img/' . $product_row->image) }}"
-                                 class="rounded-lg w-20 h-20 object-cover shadow-xl mr-4"
-                                 alt="{{ $product_row->name }}" />
+                            <img src="{{ asset('assets/images/product/' . $product_row->thumbnail) }}"
+     class="rounded-lg w-20 h-20 object-cover shadow-xl mr-4"
+     alt="{{ $product_row->name }}" />
+
                             <div>
                                 <a href="{{ route('site.product-detail', ['slug' => $product_row->slug]) }}"
                                    class="text-gray-800 font-semibold block hover:text-pink-500">
