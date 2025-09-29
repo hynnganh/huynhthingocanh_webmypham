@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('menus', function (Blueprint $table) {
+        Schema::create('product', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('category_id');
+            $table->unsignedInteger('brand_id');
             $table->string('name', 1000);
-            $table->string('link', 1000)->unique();
-            $table->unsignedInteger('table_id')->nullable();
-            $table->unsignedInteger('parent_id')->default(0);
-            $table->unsignedInteger('sort_order')->default(0);
-            $table->enum('type', ['category', 'brand', 'page', 'topic', 'custom'])->default('custom');
-            $table->enum('position', ['mainmenu', 'footer'])->default('mainmenu');
+            $table->string('slug', 1000)->unique();
+            $table->float('price_root');
+            $table->float('price_sale');
+            $table->string('thumbnail', 1000)->nullable();
+            $table->unsignedInteger('qty');
+            $table->longText('detail')->nullable();
+            $table->text('description')->nullable();
             $table->unsignedInteger('created_by');
             $table->unsignedInteger('updated_by')->nullable();
             $table->timestamps();
@@ -33,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('menus');
+        Schema::dropIfExists('product');
     }
 };

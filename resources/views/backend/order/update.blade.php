@@ -53,6 +53,29 @@
                     </select>
                 </div>
 
+                <div class="mt-6">
+                    <label class="font-semibold">Trạng thái thanh toán:</label>
+                    @if($order->payment_method == 'cod')
+                        <div class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full mt-2">
+                            COD (Đã thanh toán)
+                        </div>
+                    @elseif($order->payment_method == 'bank')
+                        @if($order->status == 1)
+                            <div class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full mt-2">
+                                Đã thanh toán
+                            </div>
+                        @else
+                            <form action="{{ route('order.confirmPayment', $order->id) }}" method="POST" class="inline-block mt-2">
+                                @csrf
+                                <button type="submit"
+                                        class="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 px-4 py-2 rounded-lg font-semibold transition">
+                                    Xác nhận thanh toán
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
+
                 <div class="flex justify-end mt-6">
                     <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
                         Cập nhật trạng thái

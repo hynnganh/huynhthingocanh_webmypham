@@ -20,7 +20,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($list as $item)
+                @forelse($orders as $item)
                     <tr>
                         <td class="p-3 border">{{ $item->name }}</td>
                         <td class="p-3 border">{{ $item->email }}</td>
@@ -56,7 +56,7 @@
         </table>
 
         <div class="mt-4">
-            {{ $list->links() }}
+            {{ $orders->links() }}
         </div>
     </div>
 </x-layout-admin>
