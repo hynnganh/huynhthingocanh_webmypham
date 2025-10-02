@@ -177,7 +177,7 @@
                         <li>
                             <a href="https://www.tiktok.com/@htnanh23" target="_blank"
                                 class="flex items-center text-lg font-medium text-white bg-black hover:bg-gray-800 px-5 py-2 rounded-full shadow-md transition-all duration-300 transform hover:scale-105">
-                                <i class="fab fa-tiktok mr-3"></i> TikTok: nàng khờ bíc iuu
+                                <i class="fab fa-tiktok mr-3"></i> TikTok: bánh píaa
                             </a>
                         </li>
                     </ul>

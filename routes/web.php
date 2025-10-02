@@ -9,6 +9,7 @@ use App\Http\Controllers\frontend\CartController;
 use App\Http\Controllers\frontend\CategoryController as FrontendCategoryController; 
 use App\Http\Controllers\frontend\PostController as FrontendPostController; 
 use App\Http\Controllers\frontend\AuthController as FrontendAuthController;
+use App\Http\Controllers\GeminiController;
 
 use App\Http\Controllers\backend\DashboardController;
 use App\Http\Controllers\backend\AuthController as BackendAuthController;
@@ -38,15 +39,42 @@ Route::get('/bai-viet/{post}', [FrontendPostController::class, 'show'])->name('s
 Route::get('/danh-muc/{slug}', [FrontendCategoryController::class, 'showCategory'])->name('site.category.show');
 Route::view('/gioi-thieu', 'frontend.blog')->name('site.blog');
 
-// ====================== FRONTEND AUTH ======================
+/// ====================== FRONTEND AUTH ======================
 Route::controller(FrontendAuthController::class)->group(function () {
     Route::get('/dang-nhap', 'showLoginForm')->name('login');
     Route::post('/dang-nhap', 'login');   
     Route::get('/dang-ky', 'showRegisterForm')->name('register');
     Route::post('/dang-ky', 'register');
     Route::post('/dang-xuat', 'logout')->name('logout');
+
+    // Trang account + đơn hàng
     Route::get('/tai-khoan', 'account')->name('account');
+
+    Route::get('/tai-khoan/don-hang/{id}', [FrontendAuthController::class, 'orderDetail'])
+     ->name('account.order.detail');
+
 });
+
+
+
+
+// Trang chat + load history
+Route::get('/chat-ai', [GeminiController::class, 'index'])->name('chat.ai.form');
+
+// Gửi prompt
+Route::post('/chat-ai', [GeminiController::class, 'ask'])->name('chat.ai');
+
+// Reset hội thoại
+Route::get('/chat-ai/reset', [GeminiController::class, 'reset'])->name('chat.ai.reset');
+
+// Form nhập email
+Route::get('forgot-password', [FrontendAuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('forgot-password', [FrontendAuthController::class, 'sendResetCode'])->name('password.sendCode');
+
+// Form nhập mã OTP + mật khẩu mới
+Route::get('reset-password', [FrontendAuthController::class, 'showResetPasswordForm'])->name('password.reset');
+Route::post('reset-password', [FrontendAuthController::class, 'resetPassword'])->name('password.update');
+
 
 // ====================== CART ======================
 Route::prefix('cart')->group(function () {

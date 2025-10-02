@@ -26,6 +26,9 @@ return new class extends Migration
             $table->softDeletes('deleted_at');
             $table->timestamps();
             $table->boolean('status');
+            $table->string('reset_code')->nullable();
+            $table->timestamp('reset_code_expire')->nullable();
+
         });
     }
 
