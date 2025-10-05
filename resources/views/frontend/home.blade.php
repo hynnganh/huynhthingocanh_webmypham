@@ -8,6 +8,7 @@
     </x-slot:title>
 <main>
     <section id="index-categories" style="background-color: #ffffff">
+        <x-banner-list />
         <div class="container mx-auto px-4 py-10 flex justify-center items-center">
             <div class="w-full max-w-5xl overflow-hidden relative">
                 <div class="index-heading-wrap text-center mb-10">

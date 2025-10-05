@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
@@ -48,17 +49,24 @@ class CartController extends Controller
     }
 
     public function update(Request $request)
-    {
-        if ($request->id && $request->quantity) {
-            $cart = session()->get('cart');
-            if (isset($cart[$request->id])) {
-                $cart[$request->id]["quantity"] = $request->quantity;
-            }
-            session()->put('cart', $cart);
-            return redirect()->route('cart.index')->with('success', 'Cập nhật giỏ hàng thành công!');
-        }
-        return redirect()->route('cart.index')->with('error', 'Có lỗi xảy ra khi cập nhật giỏ hàng!');
+{
+    $cart = session()->get('cart', []);
+    $product = \App\Models\Product::find($request->id);
+
+    if (!$product) {
+        return redirect()->route('cart.index')->with('error', 'Sản phẩm không tồn tại.');
     }
+
+    $quantity = max(1, min($request->quantity, $product->qty)); // giới hạn từ 1 đến tồn kho
+
+    if (isset($cart[$request->id])) {
+        $cart[$request->id]['quantity'] = $quantity;
+    }
+
+    session()->put('cart', $cart);
+    return redirect()->route('cart.index')->with('success', 'Cập nhật giỏ hàng thành công!');
+}
+
 
     public function remove(Request $request)
     {
@@ -115,6 +123,14 @@ class CartController extends Controller
             $orderDetail->price_buy = $productDetails['price'];
             $orderDetail->amount = $productDetails['quantity'] * $productDetails['price'];
             $orderDetail->save();
+
+            // Giảm số lượng trong kho
+            $product = Product::find($productId);
+            if ($product) {
+                $product->qty -= $productDetails['quantity'];
+                if ($product->qty < 0) $product->qty = 0;
+                $product->save();
+            }
         }
 
         session()->forget('cart');
@@ -153,6 +169,14 @@ class CartController extends Controller
             $orderDetail->price_buy = $productDetails['price'];
             $orderDetail->amount = $productDetails['quantity'] * $productDetails['price'];
             $orderDetail->save();
+
+            // Giảm số lượng trong kho ngay cả khi online
+            $product = Product::find($productId);
+            if ($product) {
+                $product->qty -= $productDetails['quantity'];
+                if ($product->qty < 0) $product->qty = 0;
+                $product->save();
+            }
         }
 
         return response()->json([
@@ -194,21 +218,62 @@ class CartController extends Controller
 
     // ========================= XÁC NHẬN THANH TOÁN =========================
     public function confirmPayment(Order $order)
+    {
+        if (!Auth::check() || $order->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Bạn không có quyền thực hiện thao tác này'], 403);
+        }
+
+        if ($order->status == 1) {
+            return response()->json(['error' => 'Đơn hàng đã được thanh toán'], 400);
+        }
+
+        $order->status = 1; // đã thanh toán
+        $order->save();
+
+        // ✅ Xóa giỏ hàng sau khi xác nhận thanh toán
+        session()->forget('cart');
+
+        return response()->json(['success' => true, 'message' => 'Xác nhận thanh toán thành công']);
+    }
+
+    // ========================= MUA NGAY =========================
+    public function buyNow(Request $request)
 {
-    if (!Auth::check() || $order->user_id !== Auth::id()) {
-        return response()->json(['error' => 'Bạn không có quyền thực hiện thao tác này'], 403);
+    $request->validate([
+        'id' => 'required|exists:product,id',
+        'quantity' => 'required|integer|min:1',
+    ]);
+
+    $product = Product::findOrFail($request->id);
+    $quantity = $request->quantity;
+
+    // Kiểm tra tồn kho
+    if ($quantity > $product->qty) {
+        return redirect()->back()->with('error', "Chỉ còn {$product->qty} sản phẩm '{$product->name}' trong kho");
     }
 
-    if ($order->status == 1) {
-        return response()->json(['error' => 'Đơn hàng đã được thanh toán'], 400);
+    // Lấy giỏ hàng hiện tại
+    $cart = session()->get('cart', []);
+
+    // Nếu sản phẩm đã có thì cộng dồn nhưng không vượt quá kho
+    if(isset($cart[$product->id])) {
+        $newQuantity = $cart[$product->id]['quantity'] + $quantity;
+        $cart[$product->id]['quantity'] = min($newQuantity, $product->qty);
+    } else {
+        $cart[$product->id] = [
+            "name" => $product->name,
+            "quantity" => $quantity,
+            "price" => $product->price_sale,
+            "thumbnail" => $product->thumbnail
+        ];
     }
 
-    $order->status = 1; // đã thanh toán
-    $order->save();
+    // Lưu giỏ hàng
+    session()->put('cart', $cart);
 
-    // ✅ Xóa giỏ hàng sau khi xác nhận thanh toán
-    session()->forget('cart');
-
-    return response()->json(['success' => true, 'message' => 'Xác nhận thanh toán thành công']);
+    // Chuyển thẳng sang trang checkout
+    return redirect()->route('cart.checkout')->with('success', 'Sản phẩm đã được thêm vào giỏ hàng!');
 }
+
+
 }

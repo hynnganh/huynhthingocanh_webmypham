@@ -165,5 +165,26 @@ class ProductController extends Controller
             }
         }
 
-        return redirect()->route('product.trash')->with('success', 'Sản phẩm đã được xóa vĩnh viễn!');    }
+        return redirect()->route('product.trash')->with('success', 'Sản phẩm đã được xóa vĩnh viễn!');  
+    }
+
+    // Hiển thị danh sách tồn kho
+    public function inventory()
+    {
+        $products = Product::all(); // hoặc paginate nếu nhiều sản phẩm
+        return view('backend.inventory.index', compact('products'));
+    }
+
+    // Cập nhật tồn kho
+    public function updateInventory(Request $request, Product $product)
+    {
+        $request->validate([
+            'qty' => 'required|integer|min:0'
+        ]);
+
+        $product->qty = $request->qty;
+        $product->save();
+
+        return redirect()->route('inventory.index')->with('success', "Cập nhật tồn kho sản phẩm '{$product->name}' thành công!");
+    }
 }

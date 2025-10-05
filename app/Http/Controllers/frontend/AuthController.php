@@ -8,11 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\OrderDetail;
+use App\Models\Product;
 use Illuminate\Support\Str;
 use App\Http\Requests\RegisterUserRequest;
-use App\Models\OrderDetail;
-
 
 class AuthController extends Controller
 {
@@ -26,6 +25,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->intended('/')->with('success', 'Đăng nhập thành công');
@@ -56,8 +56,7 @@ class AuthController extends Controller
 
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
-            $extension = $file->getClientOriginalExtension();
-            $filename = Str::slug($request->username) . '-' . time() . '.' . $extension;
+            $filename = Str::slug($request->username) . '-' . time() . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('assets/images/user'), $filename);
             $user->avatar = $filename;
         } else {
@@ -73,25 +72,29 @@ class AuthController extends Controller
     }
 
     // Trang account + liệt kê đơn hàng
-    // Trang danh sách đơn hàng
-public function account()
+    public function account()
 {
     $user = Auth::user();
 
-    $orders = Order::where('user_id', $user->id)
+    // Lấy đơn hàng của user, luôn là Collection
+    $orders = Order::with('orderDetails.product')
+                   ->where('user_id', $user->id)
                    ->orderBy('created_at', 'desc')
-                   ->get();
+                   ->get() ?? collect();
+
+    // Load reviews của user (nếu chưa load)
+    $user->load(['reviews.product']);
 
     return view('frontend.account', compact('user', 'orders'));
 }
 
-// Chi tiết đơn hàng
-// Chi tiết đơn hàng frontend
-public function orderDetail($id)
+
+    // Chi tiết đơn hàng
+    public function orderDetail($id)
 {
     $user = Auth::user();
 
-    // Lấy đơn hàng của user đang đăng nhập, cùng chi tiết sản phẩm
+    // Lấy đơn hàng của user, cùng chi tiết sản phẩm
     $order = Order::with('orderDetails.product')
                   ->where('id', $id)
                   ->where('user_id', $user->id)
@@ -100,17 +103,32 @@ public function orderDetail($id)
     // Chuyển đổi dữ liệu chi tiết đơn hàng
     $orderDetails = $order->orderDetails->map(function($detail) {
         return [
-            'product_name'  => $detail->product->name,
+            'product_name'  => $detail->product->name ?? 'Sản phẩm đã xóa',
             'product_image' => $detail->product->thumbnail ?? 'default.png',
             'price'         => $detail->price_buy,
             'quantity'      => $detail->qty,
-            'total'         => $detail->price_buy, // nếu muốn tính tổng = price_buy * qty thì đổi ở đây
+            'total'         => $detail->price_buy * $detail->qty,
         ];
     });
 
-    return view('frontend.order-detail', compact('order', 'orderDetails'));
-}
+    // Tạo mảng trạng thái kèm màu sắc
+    $statusLabels = [
+        1 => ['text' => 'Chờ xác nhận', 'color' => 'yellow-600'],
+        2 => ['text' => 'Đã xác nhận', 'color' => 'blue-600'],
+        3 => ['text' => 'Đang chuẩn bị hàng', 'color' => 'orange-600'],
+        4 => ['text' => 'Đang giao hàng', 'color' => 'green-600'],
+        5 => ['text' => 'Giao thành công', 'color' => 'teal-600'],
+        6 => ['text' => 'Đã hủy', 'color' => 'red-600'],
+        7 => ['text' => 'Hoàn trả', 'color' => 'purple-600'],
+        8 => ['text' => 'Đổi hàng', 'color' => 'indigo-600'],
+        9 => ['text' => 'Từ chối', 'color' => 'gray-600'],
+        10 => ['text' => 'Khác', 'color' => 'pink-600'],
+    ];
 
+    $status = $statusLabels[$order->status] ?? ['text' => 'Chưa xác định', 'color' => 'gray-500'];
+
+    return view('frontend.order-detail', compact('order', 'orderDetails', 'status'));
+}
 
 
     // Logout
@@ -129,7 +147,7 @@ public function orderDetail($id)
         return view('frontend.forgot-password');
     }
 
-    // Xử lý gửi OTP (giả lập)
+    // Gửi OTP (giả lập)
     public function sendResetCode(Request $request)
     {
         $request->validate([
@@ -137,17 +155,14 @@ public function orderDetail($id)
         ]);
 
         $user = User::where('email', $request->email)->first();
-
         $code = rand(100000, 999999);
         $user->reset_code = $code;
         $user->reset_code_expire = now()->addMinutes(10);
         $user->save();
 
-        // Giả lập gửi mail: lưu OTP vào session
         session()->flash('otp_code', $code);
         session()->flash('reset_email', $request->email);
 
-        // Redirect sang form reset password
         return redirect()->route('password.reset')
                          ->with('success', "Mã OTP đã gửi (giả lập): $code");
     }

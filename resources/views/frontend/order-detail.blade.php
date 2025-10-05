@@ -16,14 +16,21 @@
                 <p><span class="font-semibold text-pink-600">Ghi chú:</span> {{ $order->note ?? '-' }}</p>
                 <p><span class="font-semibold text-pink-600">Phương thức thanh toán:</span> {{ strtoupper($order->payment_method) }}</p>
                 <p><span class="font-semibold text-pink-600">Trạng thái:</span>
-                    @if($order->status == 0)
-                        Chờ xử lý
-                    @elseif($order->status == 1)
-                        Đã thanh toán
-                    @elseif($order->status == 2)
-                        Chờ xác thực
-                    @endif
-                </p>
+    @switch($order->status)
+        @case(1) <span class="text-yellow-600">Chờ xác nhận</span> @break
+        @case(2) <span class="text-blue-600">Đã xác nhận</span> @break
+        @case(3) <span class="text-orange-600">Đang chuẩn bị hàng</span> @break
+        @case(4) <span class="text-green-600">Đang giao hàng</span> @break
+        @case(5) <span class="text-teal-600">Giao thành công</span> @break
+        @case(6) <span class="text-red-600">Đã hủy</span> @break
+        @case(7) <span class="text-purple-600">Hoàn trả</span> @break
+        @case(8) <span class="text-indigo-600">Đổi hàng</span> @break
+        @case(9) <span class="text-gray-600">Từ chối</span> @break
+        @case(10) <span class="text-pink-600">Khác</span> @break
+        @default <span class="text-gray-500">Chưa xác định</span>
+    @endswitch
+</p>
+
                 @if($order->payment_proof)
                     <p><span class="font-semibold text-pink-600">Chứng từ thanh toán:</span>
                         <a href="{{ asset($order->payment_proof) }}" target="_blank" class="text-blue-600 underline">Xem</a>

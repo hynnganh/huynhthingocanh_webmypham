@@ -148,15 +148,15 @@
                         <li class="sub-menu">
                             <a href="{{ route('order.index') }}"
                                 class="text-white flex items-center space-x-2 p-2 rounded-md hover:bg-gray-700">
-                                <i class="fas fa-box"></i>
+                                <i class="fas fa-truck"></i>
                                 <span>Quản lý đơn hàng</span>
                             </a>
                         </li>
                         <li class="sub-menu">
-                            <a href=""
+                            <a href="{{ route('inventory.index') }}"
                                 class="text-white flex items-center space-x-2 p-2 rounded-md hover:bg-gray-700">
-                                <i class=" fa fa-truck"></i>
-                                <span>Vận chuyển</span>
+                                <i class="fa fa-box"></i>
+                                <span>Tồn kho</span>
                             </a>
                         </li>
                         <li class="sub-menu">

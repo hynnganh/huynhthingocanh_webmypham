@@ -10,6 +10,13 @@ class Product extends Model
     protected $table = 'product';
     use SoftDeletes;
 
+    protected $fillable = [
+        'category_id', 'brand_id', 'name', 'slug',
+        'price_root', 'price_sale', 'thumbnail',
+        'qty', 'detail', 'description',
+        'created_by', 'updated_by', 'status'
+    ];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -19,5 +26,9 @@ class Product extends Model
     {
         return $this->belongsTo(Brand::class);
     }
-}
 
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+}

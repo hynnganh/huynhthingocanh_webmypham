@@ -10,6 +10,8 @@ use App\Http\Controllers\frontend\CategoryController as FrontendCategoryControll
 use App\Http\Controllers\frontend\PostController as FrontendPostController; 
 use App\Http\Controllers\frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\GeminiController;
+use App\Http\Controllers\frontend\ReviewController;
+
 
 use App\Http\Controllers\backend\DashboardController;
 use App\Http\Controllers\backend\AuthController as BackendAuthController;
@@ -55,7 +57,9 @@ Route::controller(FrontendAuthController::class)->group(function () {
 
 });
 
-
+Route::middleware('auth')->group(function () {
+    Route::post('/san-pham/danh-gia', [ReviewController::class, 'store'])->name('review.store');
+});
 
 
 // Trang chat + load history
@@ -84,6 +88,8 @@ Route::prefix('cart')->group(function () {
     Route::post('remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::get('clear', [CartController::class, 'clear'])->name('cart.clear');
     Route::get('checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+
+    Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
 
     Route::post('store-order', [CartController::class, 'storeOrder'])->name('cart.storeOrder');
     Route::post('store-order-online', [CartController::class, 'storeOrderOnline'])->name('cart.storeOrderOnline');
@@ -114,6 +120,11 @@ Route::prefix('admin')->group(function () {
         Route::get('status/{product}', [BackendProductController::class, 'status'])->name('product.status');
     });
     Route::resource('product', BackendProductController::class);
+
+    Route::prefix('inventory')->group(function () {
+    Route::get('/', [BackendProductController::class, 'inventory'])->name('inventory.index'); // danh sách tồn kho
+    Route::post('update/{product}', [BackendProductController::class, 'updateInventory'])->name('inventory.update'); // cập nhật số lượng
+});
 
     // ----- BANNER -----
     Route::prefix('banner')->group(function () {

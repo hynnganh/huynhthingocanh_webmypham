@@ -17,6 +17,11 @@
 
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- noUiSlider CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
+
+    <!-- noUiSlider JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
 
     {{ $header ?? '' }}
 </head>
@@ -134,10 +139,6 @@
     </div>
         </div>
     </nav>
-
-        <section>
-            <x-banner-list />
-        </section>
 
         {{ $slot }}
 

@@ -36,12 +36,14 @@
                             <td class="py-3 px-4">{{ $item['name'] }}</td>
                             <td class="py-3 px-4">{{ number_format($item['price']) }} VND</td>
                             <td class="py-3 px-4">
-                                <form action="{{ route('cart.update') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="id" value="{{ $id }}">
-                                    <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" class="border p-2 rounded-md w-16 text-center">
-                                    <button type="submit" class="ml-2 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">Cập nhật</button>
-                                </form>
+                            <form action="{{ route('cart.update') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $id }}">
+                                <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" 
+                                    max="{{ \App\Models\Product::find($id)->qty ?? 1000 }}" 
+                                    class="border p-2 rounded-md w-16 text-center">
+                                <button type="submit" class="ml-2 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">Cập nhật</button>
+                            </form>
                             </td>
                             <td class="py-3 px-4">{{ number_format($subtotal) }} VND</td>
                             <td class="py-3 px-4">
