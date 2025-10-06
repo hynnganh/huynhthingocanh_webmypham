@@ -34,12 +34,12 @@
                             <span class="text-red-600 font-medium">Hết hàng</span>
                         @endif
                     </div>
-<div class="flex items-center space-x-2">
-    <label class="text-lg font-medium text-gray-700">Số lượng:</label>
-    <input id="product-quantity" name="quantity" type="number" value="1" min="1" max="{{ $product->qty }}"
-           class="border border-gray-300 px-4 py-2 rounded-lg w-24 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-           oninput="this.value = Math.max(1, Math.min({{ $product->qty }}, this.value))" />
-</div>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-lg font-medium text-gray-700">Số lượng:</label>
+                        <input id="product-quantity" name="quantity" type="number" value="1" min="1" max="{{ $product->qty }}"
+                            class="border border-gray-300 px-4 py-2 rounded-lg w-24 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            oninput="this.value = Math.max(1, Math.min({{ $product->qty }}, this.value))" />
+                    </div>
                     <!-- Nút thêm giỏ -->
                     <div class="flex space-x-4">
                         <!-- Thêm vào giỏ -->
@@ -72,8 +72,11 @@
 
                     <div class="mt-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-4">Chi tiết sản phẩm</h3>
-                        <p class="text-lg text-gray-700">{{ $product->description }}</p>
+                        <div class="prose max-w-none text-gray-700 product-detail">
+                            {!! $product->detail !!}
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -137,4 +140,5 @@
             @endif
         </div>
     </main>
+    
 </x-layout-site>

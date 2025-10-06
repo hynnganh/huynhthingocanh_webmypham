@@ -117,10 +117,23 @@ public function store(StoreBrandRequest $request)
 
  
     public function delete($id)
-    {
-        $brand = Brand::find($id);
-        $brand->delete(); // soft delete
-        return redirect()->route('brand.index')->with('success', 'Xóa thương hiệu thành công');    }
+{
+    $brand = Brand::find($id);
+
+    if (!$brand) {
+        return redirect()->route('brand.index')->with('error', 'Thương hiệu không tồn tại!');
+    }
+
+    // Kiểm tra có sản phẩm nào thuộc thương hiệu này không
+    $hasProducts = \DB::table('product')->where('brand_id', $id)->exists();
+
+    if ($hasProducts) {
+        return redirect()->route('brand.index')->with('error', 'Không thể xóa vì thương hiệu này đang có sản phẩm!');
+    }
+
+    $brand->delete(); // soft delete
+    return redirect()->route('brand.index')->with('success', 'Xóa thương hiệu thành công');
+}
 
     
     public function status($id)

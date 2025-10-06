@@ -201,4 +201,41 @@ class AuthController extends Controller
 
         return redirect()->route('login')->with('success', 'Mật khẩu đã được đặt lại thành công');
     }
+
+
+
+    public function update(Request $request)
+{
+    $user = auth()->user();
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'phone' => 'nullable|string|max:20',
+        'address' => 'nullable|string|max:255',
+        'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+    ]);
+
+    $user->name = $request->name;
+    $user->phone = $request->phone;
+    $user->address = $request->address;
+
+    // Upload avatar
+    if ($request->hasFile('avatar')) {
+        $file = $request->file('avatar');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('assets/images/user'), $filename);
+
+        // Xóa avatar cũ nếu có
+        if ($user->avatar && file_exists(public_path('assets/images/user/' . $user->avatar))) {
+            unlink(public_path('assets/images/user/' . $user->avatar));
+        }
+
+        $user->avatar = $filename;
+    }
+
+    $user->save();
+
+    return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
+}
+
 }

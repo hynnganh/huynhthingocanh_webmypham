@@ -221,7 +221,7 @@
             }
         });
     </script>
-
+    @stack('scripts')
 
 </body>
 

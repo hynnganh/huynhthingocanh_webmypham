@@ -58,6 +58,24 @@ class ProductController extends Controller
         return view('frontend.product', compact('product_list', 'category_list', 'brand_list'));
     }
 
+     public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        if ($query) {
+            $products = Product::where(function($queryBuilder) use ($query) {
+                $queryBuilder->where('name', 'like', '%' . $query . '%')
+                             ->orWhere('description', 'like', '%' . $query . '%');
+            });
+
+            $products = $products->get();
+        } else {
+            $products = Product::all();
+        }
+        
+        return view('frontend.search', compact('products', 'query'));
+    }
+
     public function detail($slug)
     {
         $product = Product::where([['status', '=', 1], ['slug', '=', $slug]])->first();

@@ -119,12 +119,25 @@ public function store(StoreCategoryRequest $request)
     }
 
  
-    public function delete($id)
-    {
-        $category = category::find($id);
-        $category->delete(); // soft delete
-        return redirect()->route('category.index')->with('success', 'Xóa danh mục thành công');
+public function delete($id)
+{
+    $category = Category::find($id);
+
+    if (!$category) {
+        return redirect()->route('category.index')->with('error', 'Danh mục không tồn tại!');
     }
+
+    // Kiểm tra có sản phẩm nào thuộc danh mục này không
+    $hasProducts = \DB::table('product')->where('category_id', $id)->exists();
+
+    if ($hasProducts) {
+        return redirect()->route('category.index')->with('error', 'Không thể xóa vì danh mục này đang có sản phẩm!');
+    }
+
+    $category->delete(); // soft delete
+    return redirect()->route('category.index')->with('success', 'Xóa danh mục thành công');
+}
+
 
     
     public function status($id)

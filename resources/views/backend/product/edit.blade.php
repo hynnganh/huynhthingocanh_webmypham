@@ -114,4 +114,23 @@
 
         </div>
     </form>
+    @push('scripts')
+    <!-- CKEditor 5 -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#detail'), {
+                toolbar: [
+                    'undo', 'redo', '|',
+                    'heading', '|',
+                    'bold', 'italic', 'underline', 'link', '|',
+                    'bulletedList', 'numberedList', 'blockQuote', '|',
+                    'insertTable', 'mediaEmbed'
+                ]
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+@endpush
 </x-layout-admin>

@@ -54,6 +54,7 @@ Route::controller(FrontendAuthController::class)->group(function () {
 
     Route::get('/tai-khoan/don-hang/{id}', [FrontendAuthController::class, 'orderDetail'])
      ->name('account.order.detail');
+    Route::post('/account/update', [FrontendAuthController::class, 'update'])->name('account.update');
 
 });
 

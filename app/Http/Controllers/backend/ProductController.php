@@ -129,12 +129,25 @@ class ProductController extends Controller
     }
 
  
-    public function delete($id)
-    {
-        $product = Product::find($id);
-        $product->delete(); // soft delete
-        return redirect()->route('product.index')->with('success', 'Sản phẩm đã được xóa!');
+public function delete($id)
+{
+    $product = Product::find($id);
+
+    if (!$product) {
+        return redirect()->route('product.index')->with('error', 'Sản phẩm không tồn tại!');
     }
+
+    // Kiểm tra sản phẩm có nằm trong chi tiết đơn hàng không
+    $hasOrderDetails = \DB::table('orderdetail')->where('product_id', $id)->exists();
+
+    if ($hasOrderDetails) {
+        return redirect()->route('product.index')->with('error', 'Không thể xóa vì sản phẩm đã có trong đơn hàng!');
+    }
+
+    $product->delete(); // Soft delete
+    return redirect()->route('product.index')->with('success', 'Sản phẩm đã được xóa!');
+}
+
 
     
     public function status($id)

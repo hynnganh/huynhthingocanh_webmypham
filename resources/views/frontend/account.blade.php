@@ -87,7 +87,6 @@
             @endif
         </div>
 
-
         {{-- Sản phẩm đã đánh giá --}}
         <div class="bg-white shadow-2xl rounded-xl border border-pink-100 p-6">
             <h3 class="text-2xl font-bold text-pink-600 mb-4 border-b border-pink-200 pb-2">Sản phẩm đã đánh giá</h3>

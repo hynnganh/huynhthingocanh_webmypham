@@ -39,6 +39,7 @@
                             <label for="description"><strong>Mô tả</strong></label>
                             <textarea name="description" id="description" class="w-full border border-gray-300 rounded-lg p-2">{{ old('description') }}</textarea>
                         </div>
+
                         
                         <div class="flex justify-between gap-5">
                             <div class="mb-3 w-1/3">
@@ -114,4 +115,24 @@
 
         </div>
     </form>
+    @push('scripts')
+    <!-- CKEditor 5 -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#detail'), {
+                toolbar: [
+                    'undo', 'redo', '|',
+                    'heading', '|',
+                    'bold', 'italic', 'underline', 'link', '|',
+                    'bulletedList', 'numberedList', 'blockQuote', '|',
+                    'insertTable', 'mediaEmbed'
+                ]
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+@endpush
+
 </x-layout-admin>
