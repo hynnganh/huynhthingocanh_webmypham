@@ -239,6 +239,10 @@ public function update(Request $request)
         'user' => $user->fresh()->toArray(),
         'avatar_path' => $user->avatar, 
     ], 200);
+
+
+    return redirect()->route('update')->with('success', 'Cập nhập tài khoản thành công');
+
 }
 
 }

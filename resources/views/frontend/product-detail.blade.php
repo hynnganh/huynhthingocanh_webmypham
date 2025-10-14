@@ -48,71 +48,108 @@
                         @endif
                     </div>
                     
-                    {{-- KHỐI THÔNG TIN MUA HÀNG (SL, Tình trạng, Nút) --}}
                     <div class="flex flex-col space-y-4 pt-2">
-                        <div class="flex items-center justify-start">
-                            <label class="text-lg font-semibold text-gray-700 mr-2">SL:</label>
-                            <input id="product-quantity" name="quantity" type="number" value="1" min="1" max="{{ $product->qty }}"
-                                class="border border-pink-300 px-3 py-2 rounded-lg w-16 text-center text-gray-700 focus:ring-pink-400 focus:border-pink-400"
-                                oninput="this.value = Math.max(1, Math.min({{ $product->qty }}, this.value))" />
-                        </div>
+    <div class="flex items-center justify-start">
+        <label class="text-lg font-semibold text-gray-700 mr-2">SL:</label>
+        <input id="product-quantity" name="quantity" type="number" value="1" min="1" max="{{ $product->qty }}"
+            class="border border-pink-300 px-3 py-2 rounded-lg w-16 text-center text-gray-700 focus:ring-pink-400 focus:border-pink-400"
+            oninput="this.value = Math.max(1, Math.min({{ $product->qty }}, this.value))" />
+    </div>
 
-                        <div class="flex items-center justify-start">
-                            <div class="text-lg font-semibold">
-                                Tình trạng: 
-                                @if($product->qty > 0)
-                                    <span class="text-green-600 font-bold">Còn hàng ({{ $product->qty }} sp)</span>
-                                @else
-                                    <span class="text-red-600 font-bold">Hết hàng</span>
-                                @endif
-                            </div>
-                        </div>
+    <div class="flex items-center justify-start">
+        <div class="text-lg font-semibold">
+            Tình trạng: 
+            @if($product->qty > 0)
+                <span class="text-green-600 font-bold">Còn hàng ({{ $product->qty }} sp)</span>
+            @else
+                <span class="text-red-600 font-bold">Hết hàng</span>
+            @endif
+        </div>
+    </div>
 
-                        <div class="flex space-x-4 justify-start"> 
-                            
-                            {{-- Thêm vào giỏ --}}
-                            <form id="add-to-cart-form" action="{{ route('cart.add') }}" method="POST" class="w-full max-w-[150px]">
-                                @csrf
-                                <input type="hidden" name="id" value="{{ $product->id }}">
-                                <input type="hidden" name="name" value="{{ $product->name }}">
-                                <input type="hidden" name="price" value="{{ $product->price_sale }}">
-                                <input type="hidden" id="cart-quantity-input" name="quantity" value="1">
-                                
-                                <button type="submit" class="bg-pink-500 text-white font-bold text-base px-4 py-3 rounded-xl hover:bg-pink-600 transition duration-300 w-full shadow-lg shadow-pink-200"
-                                        {{ $product->qty <= 0 ? 'disabled' : '' }}>
-                                    <i class="fa fa-shopping-cart mr-1"></i> Giỏ hàng
-                                </button>
-                            </form>
+    {{-- ✅ Nút chức năng --}}
+    <div class="flex space-x-4 justify-start">
+        
+        {{-- 🛒 Thêm vào giỏ --}}
+        <form id="add-to-cart-form" action="{{ route('cart.add') }}" method="POST" class="w-full max-w-[150px]">
+            @csrf
+            <input type="hidden" name="id" value="{{ $product->id }}">
+            <input type="hidden" name="name" value="{{ $product->name }}">
+            <input type="hidden" name="price" value="{{ $product->price_sale }}">
+            <input type="hidden" id="cart-quantity-input" name="quantity" value="1">
+            
+            <button type="submit" class="bg-pink-500 text-white font-bold text-base px-4 py-3 rounded-xl hover:bg-pink-600 transition duration-300 w-full shadow-lg shadow-pink-200"
+                    {{ $product->qty <= 0 ? 'disabled' : '' }}>
+                <i class="fa fa-shopping-cart mr-1"></i> Giỏ hàng
+            </button>
+        </form>
 
-                            {{-- Mua ngay --}}
-                            <form action="{{ route('cart.buyNow') }}" method="POST" class="w-full max-w-[150px]">
-                                @csrf
-                                <input type="hidden" name="id" value="{{ $product->id }}">
-                                <input type="hidden" name="quantity" id="buy-now-quantity-input" value="1">
-                                <button type="submit"
-                                        class="bg-red-500 text-white font-bold text-base px-4 py-3 rounded-xl w-full hover:bg-red-600 transition duration-300 shadow-lg shadow-red-200 {{ $product->qty <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                        {{ $product->qty <= 0 ? 'disabled' : '' }}>
-                                    Mua ngay
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+        {{-- ⚡ Mua ngay --}}
+        <form action="{{ route('cart.buyNow') }}" method="POST" class="w-full max-w-[150px]">
+            @csrf
+            <input type="hidden" name="id" value="{{ $product->id }}">
+            <input type="hidden" name="quantity" id="buy-now-quantity-input" value="1">
+            <button type="submit"
+                    class="bg-red-500 text-white font-bold text-base px-4 py-3 rounded-xl w-full hover:bg-red-600 transition duration-300 shadow-lg shadow-red-200 {{ $product->qty <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                    {{ $product->qty <= 0 ? 'disabled' : '' }}>
+                Mua ngay
+            </button>
+        </form>
 
-                    <script>
-                        // Logic đồng bộ số lượng (Giữ nguyên)
-                        document.addEventListener('DOMContentLoaded', () => {
-                            const quantityInput = document.getElementById('product-quantity');
-                            const cartQuantityInput = document.getElementById('cart-quantity-input');
-                            const buyNowQuantityInput = document.getElementById('buy-now-quantity-input');
-                            if (quantityInput) {
-                                quantityInput.addEventListener('input', () => {
-                                    const value = quantityInput.value;
-                                    cartQuantityInput.value = value;
-                                    buyNowQuantityInput.value = value;
-                                });
-                            }
-                        });
-                    </script>
+        @auth
+            <button 
+                class="wishlist-btn w-full max-w-[150px] bg-white border border-pink-400 text-pink-500 font-bold text-base px-4 py-2 rounded-xl hover:bg-pink-50 transition duration-300 shadow-md flex justify-center items-center gap-2"
+                data-product-id="{{ $product->id }}"
+            >
+                @if(auth()->user()->wishlist && auth()->user()->wishlist->contains('product_id', $product->id))
+                    <i class="fas fa-heart text-pink-500 text-lg"></i> 
+                    <span>Đã thích</span>
+                @else
+                    <i class="far fa-heart text-gray-400 text-lg"></i> 
+                    <span>Yêu thích</span>
+                @endif
+            </button>
+        @endauth
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.wishlist-btn');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const productId = this.dataset.productId;
+
+            fetch('{{ route('wishlist.toggle') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    showToast('Đã thêm vào danh sách yêu thích');
+                } else if (data.status === 'removed') {
+                    showToast('Đã xóa khỏi danh sách yêu thích', false);
+                }
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Lỗi khi cập nhật yêu thích', false);
+            });
+        });
+    });
+});
+</script>
+
                 </div>
 
                 {{-- CỘT 3 (lg:col-span-3): Mã khuyến mãi --}}

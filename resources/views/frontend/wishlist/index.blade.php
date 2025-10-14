@@ -9,18 +9,8 @@
         @if($wishlist->count() > 0)
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                 @foreach($wishlist as $item)
-                    <div class="bg-white shadow-lg rounded-lg p-4 text-center">
-                        <img src="{{ $item->product->image }}" alt="{{ $item->product->name }}" class="rounded-md mb-4">
-                        <h3 class="font-semibold text-gray-800">{{ $item->product->name }}</h3>
-                        <p class="text-pink-500 font-bold">{{ number_format($item->product->price) }} VNĐ</p>
-                        <form action="{{ route('wishlist.remove') }}" method="POST" class="mt-3">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $item->product->id }}">
-                            <button class="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600">
-                                Xóa
-                            </button>
-                        </form>
-                    </div>
+                    <x-product-card :productrow="$item->product" />
+
                 @endforeach
             </div>
         @else

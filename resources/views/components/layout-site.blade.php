@@ -102,7 +102,7 @@
 
                             <!-- Dropdown - Cần thêm ID và loại bỏ class 'group-hover:block' -->
                             <!-- Class 'hidden' được giữ lại để ẩn ban đầu, JS sẽ thêm/bỏ 'is-visible' -->
-                            <ul id="account-menu" class="absolute right-0 hidden bg-white text-gray-800 shadow-xl border border-gray-100 rounded-lg py-2 min-w-[160px] mt-2 z-50">
+                            <ul id="account-menu" class="absolute left-0 hidden bg-white text-gray-800 shadow-xl border border-gray-100 rounded-lg py-2 min-w-[190px] mt-2 z-50">
                                 @if (Auth::check())
                                     <li>
                                         <a href="{{ route('account') }}" class="block px-3 py-2 text-sm hover:bg-pink-50 hover:text-[#F7A7C1] transition rounded-lg mx-1">
@@ -110,7 +110,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('wishlist') }}" class="block px-3 py-2 text-sm hover:bg-pink-50 hover:text-[#F7A7C1] transition rounded-lg mx-1">
+                                        <a href="{{ route('wishlist.index') }}" class="block px-3 py-2 text-sm hover:bg-pink-50 hover:text-[#F7A7C1] transition rounded-lg mx-1">
                                             <i class="fa fa-heart mr-2"></i> Danh sách yêu thích
                                         </a>
                                     </li>
@@ -246,270 +246,204 @@
 
     {{ $footer ?? '' }}
     
-    <script>
-        // Set up Toastr options
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-bottom-right",
-            "timeOut": "3000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        };
-        
-        // Display session messages
-        @if (session('success'))
-            toastr.success("{{ session('success') }}");
-        @endif
-    
-        @if (session('error'))
-            toastr.error("{{ session('error') }}");
-        @endif
-    
-        // Display validation errors
-        @if ($errors->any())
-            @foreach ($errors->all() as $error)
-                toastr.error("{{ $error }}");
-            @endforeach
-        @endif
-        
-        /**
-         * Logic làm nổi bật Menu Active cho Frontend
-         */
-        $(document).ready(function() {
-            const currentPath = window.location.pathname;
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+<script src="{{ asset('js/toastr.min.js') }}"></script>
 
-            // Xóa tất cả trạng thái active
-            function clearActiveStates() {
-                $('.mainmenu a').removeClass('active-menu-item');
-                // Đặt lại trạng thái hover mặc định (text-white hover:bg-[#F191A8])
-                $('.mainmenu a').addClass('text-white hover:bg-[#F191A8]');
-            }
+<script>
+/* ========== TOASTR CONFIG ========== */
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    positionClass: "toast-bottom-right",
+    timeOut: "3000",
+    extendedTimeOut: "1000",
+    showEasing: "swing",
+    hideEasing: "linear",
+    showMethod: "fadeIn",
+    hideMethod: "fadeOut"
+};
 
-            // 1. Highlight link khi tải trang
-            $('.mainmenu a').each(function() {
-                const linkPath = $(this).attr('href');
-                
-                // Sử dụng .startsWith() để khớp các đường dẫn con (ví dụ: /products/1 khớp với /products)
-                if (linkPath && currentPath.startsWith(linkPath) && linkPath !== '/') {
-                    // Nếu không phải trang chủ, check chính xác
-                    clearActiveStates();
-                    $(this).addClass('active-menu-item').removeClass('text-white hover:bg-[#F191A8]');
-                    return false; // Break the loop once a match is found
-                }
-                
-                // Xử lý riêng cho Trang chủ (Home: /)
-                if (linkPath === '/' && currentPath === '/') {
-                    clearActiveStates();
-                    $(this).addClass('active-menu-item').removeClass('text-white hover:bg-[#F191A8]');
-                    return false; // Break the loop
-                }
-            });
+// Show Laravel session messages
+@if (session('success'))
+    toastr.success("{{ session('success') }}");
+@endif
 
-            // 2. Highlight tức thì khi click (cho hiệu ứng ngay lập tức trước khi chuyển trang)
-            $('.mainmenu a').on('click', function() {
-                clearActiveStates();
-                $(this).addClass('active-menu-item').removeClass('text-white hover:bg-[#F191A8]');
-                // Trình duyệt sẽ chuyển hướng sau đó, và logic 1 sẽ duy trì trạng thái active.
+@if (session('error'))
+    toastr.error("{{ session('error') }}");
+@endif
+
+@if ($errors->any())
+    @foreach ($errors->all() as $error)
+        toastr.error("{{ $error }}");
+    @endforeach
+@endif
+
+/* ========== JQUERY READY ========== */
+$(function() {
+    /* === 1. Highlight Menu === */
+    const currentPath = window.location.pathname;
+
+    function clearActiveStates() {
+        $('.mainmenu a').removeClass('active-menu-item')
+                        .addClass('text-white hover:bg-[#F191A8]');
+    }
+
+    $('.mainmenu a').each(function() {
+        const linkPath = $(this).attr('href');
+        if (linkPath && currentPath.startsWith(linkPath) && linkPath !== '/') {
+            clearActiveStates();
+            $(this).addClass('active-menu-item').removeClass('text-white hover:bg-[#F191A8]');
+            return false;
+        }
+        if (linkPath === '/' && currentPath === '/') {
+            clearActiveStates();
+            $(this).addClass('active-menu-item').removeClass('text-white hover:bg-[#F191A8]');
+            return false;
+        }
+    });
+
+    $('.mainmenu a').on('click', function() {
+        clearActiveStates();
+        $(this).addClass('active-menu-item').removeClass('text-white hover:bg-[#F191A8]');
+    });
+
+
+    /* === 2. Dropdown tài khoản (ẩn sau 1 giây) === */
+    const accountLi = $('#account-dropdown-li');
+    const accountMenu = $('#account-menu');
+    let hideTimeout;
+    const HIDE_DELAY = 1000;
+
+    if (accountLi.length && accountMenu.length) {
+        accountLi.on('mouseenter', function() {
+            clearTimeout(hideTimeout);
+            accountMenu.removeClass('hidden');
+            requestAnimationFrame(() => accountMenu.addClass('is-visible'));
+        });
+        accountLi.on('mouseleave', function() {
+            hideTimeout = setTimeout(() => {
+                accountMenu.removeClass('is-visible');
+                setTimeout(() => accountMenu.addClass('hidden'), 200);
+            }, HIDE_DELAY);
+        });
+    }
+
+
+    /* === 3. Hiệu ứng "Thêm vào giỏ hàng" === */
+    const CART_ICON_SELECTOR = '#cart-icon';
+    const CART_COUNT_SELECTOR = '#cart-count';
+    const CART_ANIMATION_CLASS = 'animate-bounce';
+
+    $('.js-add-to-cart-btn').on('click', function(e) {
+        e.preventDefault();
+        if ($(this).prop('disabled')) return;
+
+        const $button = $(this);
+        const $form = $button.closest('form');
+        const productId = $button.data('product-id');
+        const $image = $('#product-image-' + productId);
+        const $cartIcon = $(CART_ICON_SELECTOR);
+
+        if (!$image.length || !$cartIcon.length) {
+            submitCartFormAjax($form, $cartIcon, CART_COUNT_SELECTOR);
+            return;
+        }
+
+        const startPosition = $image.offset();
+        const scrollY = $(window).scrollTop();
+        const scrollX = $(window).scrollLeft();
+
+        const $flyingImage = $image.clone()
+            .css({
+                position: 'fixed',
+                zIndex: 9999,
+                top: startPosition.top - scrollY,
+                left: startPosition.left - scrollX,
+                width: $image.outerWidth(),
+                height: $image.outerHeight(),
+                opacity: 1,
+                borderRadius: '50%',
+                boxShadow: '0 0 15px rgba(255,51,153,0.8)',
+                pointerEvents: 'none'
+            })
+            .appendTo('body');
+
+        const cartOffset = $cartIcon.offset();
+        const endX = cartOffset.left - scrollX + ($cartIcon.outerWidth() / 2) - ($image.outerWidth() / 4);
+        const endY = cartOffset.top - scrollY + ($cartIcon.outerHeight() / 2) - ($image.outerHeight() / 4);
+
+        $flyingImage.animate({
+            top: endY,
+            left: endX,
+            width: 40,
+            height: 40,
+            opacity: 0.5
+        }, 600, 'swing', function() {
+            $flyingImage.fadeOut(300, function() {
+                $(this).remove();
+                submitCartFormAjax($form, $cartIcon, CART_COUNT_SELECTOR);
             });
         });
+    });
 
-        /**
-         * Logic cho Dropdown Tài khoản có độ trễ 3 giây
-         */
-        document.addEventListener('DOMContentLoaded', () => {
-            const accountLi = document.getElementById('account-dropdown-li');
-            const accountMenu = document.getElementById('account-menu');
-            let hideTimeout;
-            const HIDE_DELAY = 1000; // 3000ms = 3 giây
 
-            if (accountLi && accountMenu) {
-                // Hàm hiển thị menu
-                const showMenu = () => {
-                    // 1. Luôn xóa hẹn giờ ẩn nếu có (để menu không bị ẩn khi chuột vào lại)
-                    clearTimeout(hideTimeout);
-                    
-                    // 2. Hiển thị menu
-                    accountMenu.classList.remove('hidden');
-                    // Thêm class 'is-visible' để kích hoạt transition opacity/transform
-                    requestAnimationFrame(() => {
-                        accountMenu.classList.add('is-visible');
-                    });
-                };
+    /* === 4. Hàm AJAX thêm giỏ hàng === */
+    function submitCartFormAjax($form, $cartIcon, cartCountSelector) {
+        const $submitButton = $form.find('button[type="submit"]');
+        const originalContent = $submitButton.html();
+        $submitButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
-                // Hàm bắt đầu đếm ngược ẩn menu
-                const startHideTimer = () => {
-                    // Đặt hẹn giờ để ẩn menu sau 3 giây
-                    hideTimeout = setTimeout(() => {
-                        // Xóa class 'is-visible' để bắt đầu animation ẩn
-                        accountMenu.classList.remove('is-visible');
-                        
-                        // Thêm class 'hidden' sau khi transition kết thúc (200ms) để menu không còn chiếm không gian
-                        setTimeout(() => {
-                            accountMenu.classList.add('hidden');
-                        }, 200); 
-
-                    }, HIDE_DELAY); 
-                };
-
-                // Sự kiện 1: Chuột đi vào khu vực LI (liên kết và dropdown)
-                accountLi.addEventListener('mouseenter', showMenu);
-
-                // Sự kiện 2: Chuột đi ra khỏi khu vực LI
-                accountLi.addEventListener('mouseleave', startHideTimer);
+        $.ajax({
+            url: $form.attr('action'),
+            method: 'POST',
+            data: $form.serialize(),
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (response.success) {
+                    $(cartCountSelector).text(response.cart_count);
+                    $cartIcon.addClass(CART_ANIMATION_CLASS);
+                    setTimeout(() => $cartIcon.removeClass(CART_ANIMATION_CLASS), 800);
+                    toastr.success(response.message);
+                } else if (response.requires_login && response.redirect_url) {
+                    window.location.href = response.redirect_url;
+                } else {
+                    toastr.error(response.message || 'Lỗi không xác định!');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Lỗi hệ thống hoặc chưa đăng nhập!');
+            },
+            complete: function() {
+                $submitButton.prop('disabled', false).html(originalContent);
             }
         });
+    }
 
-                $(document).ready(function() {
-                    // --- KHAI BÁO CÁC SELECTOR (Phải khớp với HTML) ---
-                    const CART_ICON_SELECTOR = '#cart-icon';     // ID của phần tử chứa icon giỏ hàng
-                    const CART_COUNT_SELECTOR = '#cart-count';   // ID của phần tử chứa con số (0, 1, 2...)
-                    const CART_ANIMATION_CLASS = 'animate-bounce'; // Tailwind class cho hiệu ứng lắc
 
-                    // Lắng nghe sự kiện click trên tất cả các nút "Thêm vào giỏ"
-                    $('.js-add-to-cart-btn').on('click', function(e) {
-                        e.preventDefault(); 
-                        
-                        // Ngăn chặn khi nút bị disabled (Hết hàng)
-                        if ($(this).prop('disabled')) {
-                            return;
-                        }
-
-                        const $button = $(this);
-                        const $form = $button.closest('form');
-                        const productId = $button.data('product-id');
-                        const $image = $('#product-image-' + productId);
-                        const $cartIcon = $(CART_ICON_SELECTOR);
-
-                        // --- Bắt đầu hiệu ứng bay ---
-
-                        // 1. Kiểm tra nếu không tìm thấy ảnh hoặc icon giỏ hàng, bỏ qua animation và gọi AJAX ngay
-                        if (!$image.length || !$cartIcon.length) {
-                            submitCartFormAjax($form, $cartIcon, CART_COUNT_SELECTOR);
-                            return;
-                        }
-
-                        // Lấy vị trí ban đầu của ảnh (top/left) so với viewport
-                        const startPosition = $image.offset();
-                        const scrollY = $(window).scrollTop();
-                        const scrollX = $(window).scrollLeft();
-
-                        // Tạo bản sao ảnh bay
-                        const $flyingImage = $image.clone()
-                            .css({
-                                'position': 'fixed',
-                                'z-index': '9999',
-                                'top': startPosition.top - scrollY,
-                                'left': startPosition.left - scrollX,
-                                'width': $image.outerWidth(),
-                                'height': $image.outerHeight(),
-                                'opacity': '1',
-                                'border-radius': '50%', // Hiệu ứng tròn
-                                'box-shadow': '0 0 15px rgba(255,51,153,0.8)',
-                                'transition': 'none',
-                                'pointer-events': 'none'
-                            })
-                            .appendTo('body');
-                        
-                        // Lấy vị trí đích của giỏ hàng (tính lại so với viewport)
-                        const cartOffset = $cartIcon.offset();
-                        const cartCenterX = cartOffset.left - scrollX + ($cartIcon.outerWidth() / 2);
-                        const cartCenterY = cartOffset.top - scrollY + ($cartIcon.outerHeight() / 2);
-
-                        // Vị trí cuối cùng của ảnh bay (căn giữa icon)
-                        const endX = cartCenterX - ($flyingImage.width() / 2);
-                        const endY = cartCenterY - ($flyingImage.height() / 2);
-                        
-                        // 2. Animation
-                        $flyingImage.animate({
-                            top: endY,
-                            left: endX,
-                            width: 30,
-                            height: 30,
-                            opacity: 0.8
-                        }, 300, 'swing').animate({ // Thay 'easeInQuad' bằng 'swing'
-                            top: cartCenterY,
-                            left: cartCenterX,
-                            width: 0, 
-                            height: 0,
-                            opacity: 0 
-                        }, 500, 'swing', function() { // Thay 'easeOutQuad' bằng 'swing'
-                            
-                            // Xóa ảnh bay và gọi AJAX
-                            $flyingImage.remove();
-                            submitCartFormAjax($form, $cartIcon, CART_COUNT_SELECTOR);
-                        });
-                    });
-
-                    // Hàm riêng để xử lý AJAX
-                    function submitCartFormAjax($form, $cartIcon, cartCountSelector) {
-                        
-                        // Hiển thị trạng thái loading trên nút
-                        const $submitButton = $form.find('button[type="submit"]');
-                        const originalButtonText = $submitButton.text();
-                        $submitButton.prop('disabled', true).text('Đang thêm...');
-
-                        $.ajax({
-                            url: $form.attr('action'),
-                            method: 'POST',
-                            data: $form.serialize(),
-                            dataType: 'json', 
-                            headers: {
-                                // Header này giúp Laravel xác định đây là AJAX request
-                                'X-Requested-With': 'XMLHttpRequest' 
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    // 1. Cập nhật số lượng giỏ hàng
-                                    $(cartCountSelector).text(response.cart_count); 
-                                    
-                                    // 2. (Tùy chọn) Hiển thị thông báo Toast/Alert
-                                    console.log('Thông báo: ' + response.message);
-                                    
-                                    // 3. Hiệu ứng lắc cho giỏ hàng
-                                    $cartIcon.addClass(CART_ANIMATION_CLASS); 
-                                    setTimeout(() => {
-                                        $cartIcon.removeClass(CART_ANIMATION_CLASS);
-                                    }, 800); 
-
-                                } else if (response.requires_login && response.redirect_url) {
-                                    // Xử lý khi yêu cầu đăng nhập (dựa trên phản hồi 401 từ Controller)
-                                    alert(response.message);
-                                    window.location.href = response.redirect_url;
-                                    
-                                } else {
-                                    alert('Lỗi: ' + response.message);
-                                }
-                            },
-                            error: function(xhr) {
-                                // Xử lý các lỗi HTTP khác (vd: 500, 404)
-                                console.error("AJAX Error:", xhr);
-                                alert('Lỗi hệ thống hoặc lỗi 401 khi không đăng nhập!');
-                            },
-                            complete: function() {
-                                // Khôi phục nút sau khi hoàn thành
-                                $submitButton.prop('disabled', false).text(originalButtonText);
-                            }
-                        });
-                    }
-                });
-function toggleWishlist(productId) {
-    fetch("{{ route('wishlist.add') }}", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ product_id: productId })
-    })
-    .then(res => res.json())
-    .then(data => alert(data.message))
-    .catch(err => console.error(err));
-}
-    </script>
+    /* === 5. Wishlist Toggle === */
+    window.toggleWishlist = function(productId) {
+        fetch("{{ route('wishlist.toggle') }}", {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                toastr.success(data.message);
+            } else {
+                toastr.info(data.message || 'Đã xoá khỏi danh sách yêu thích!');
+            }
+        })
+        .catch(() => toastr.error('Lỗi kết nối máy chủ!'));
+    };
+});
+</script>
 
 
 </body>

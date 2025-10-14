@@ -16,7 +16,8 @@ WORKDIR /var/www/html
 COPY . .
 
 # Cài các thư viện của Laravel
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-scripts --prefer-dist
+
 
 # Chuyển root Apache tới thư mục public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
