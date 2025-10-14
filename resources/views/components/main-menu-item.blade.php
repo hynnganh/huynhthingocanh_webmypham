@@ -1,6 +1,6 @@
 @if ($menu_list !== null)
-<li class="group relative borde hover:text-white p-2">
-    <a href="{{ $menu->link }}" class="text-white hover:text-white block">
+<li class="group relative">
+    <a href="{{ $menu->link }}" class="text-white hover:text-white block px-4 py-2">
         {{ $menu->name }}
     </a>
 
@@ -9,7 +9,7 @@
             @foreach ($menu_list as $item)
                 <li>
                     <a href="{{ $item->link }}"
-                       class="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded">
+                        class="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded">
                         {{ $item->name }}
                     </a>
                 </li>
@@ -19,7 +19,7 @@
 </li>
 
 @else
-  <li class="border-1 border-[#F191A8] rounded-lg hover:bg-[#F191A8] hover:text-white p-2">
-    <a href="{{ $menu->link }}" class="text-white hover:text-white">{{ $menu->name }}</a>
+<li class="rounded-lg hover:bg-[#F191A8] p-2">
+    <a href="{{ $menu->link }}" class="text-white block">{{ $menu->name }}</a>
 </li>
 @endif

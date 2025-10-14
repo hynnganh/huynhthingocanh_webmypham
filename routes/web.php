@@ -11,7 +11,7 @@ use App\Http\Controllers\frontend\PostController as FrontendPostController;
 use App\Http\Controllers\frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\GeminiController;
 use App\Http\Controllers\frontend\ReviewController;
-
+use App\Http\Controllers\WishlistController;
 
 use App\Http\Controllers\backend\DashboardController;
 use App\Http\Controllers\backend\AuthController as BackendAuthController;
@@ -51,15 +51,20 @@ Route::controller(FrontendAuthController::class)->group(function () {
 
     // Trang account + đơn hàng
     Route::get('/tai-khoan', 'account')->name('account');
-
     Route::get('/tai-khoan/don-hang/{id}', [FrontendAuthController::class, 'orderDetail'])
      ->name('account.order.detail');
-    Route::post('/account/update', [FrontendAuthController::class, 'update'])->name('account.update');
-
+     Route::put('/account/update', [FrontendAuthController::class, 'update'])->name('account.update');
+     
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/san-pham/danh-gia', [ReviewController::class, 'store'])->name('review.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/add', [WishlistController::class, 'add'])->name('wishlist.add');
+    Route::post('/wishlist/remove', [WishlistController::class, 'remove'])->name('wishlist.remove');
 });
 
 
@@ -87,7 +92,7 @@ Route::prefix('cart')->group(function () {
     Route::post('add', [CartController::class, 'add'])->name('cart.add');
     Route::post('update', [CartController::class, 'update'])->name('cart.update');
     Route::post('remove', [CartController::class, 'remove'])->name('cart.remove');
-    Route::get('clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::post('clear', [CartController::class, 'clear'])->name('cart.clear');
     Route::get('checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
     Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
@@ -102,6 +107,7 @@ Route::prefix('cart')->group(function () {
     Route::post('confirm-payment/{order}', [CartController::class, 'confirmPayment'])
         ->name('cart.confirmPayment');
 });
+
 
 // ====================== ADMIN AUTH ======================
 Route::get('/admin/login', [BackendAuthController::class, 'showAdminLoginForm'])->name('admin.login.form');

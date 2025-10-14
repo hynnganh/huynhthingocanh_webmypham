@@ -21,32 +21,67 @@ class CartController extends Controller
     }
 
     public function add(Request $request)
-    {
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để thêm giỏ hàng.');
+{
+    // Kiểm tra xem request có phải là AJAX không
+    $isAjax = $request->wantsJson();
+
+    // === 1. KIỂM TRA ĐĂNG NHẬP ===
+    if (!Auth::check()) {
+        if ($isAjax) {
+            // Nếu là AJAX: Trả về lỗi JSON
+            return response()->json([
+                'success' => false,
+                'message' => 'Vui lòng đăng nhập để thêm giỏ hàng.',
+                'requires_login' => true, // Thêm flag để JS biết phải chuyển hướng
+                'redirect_url' => route('login'),
+            ], 401); // 401 Unauthorized
         }
-
-        $productId = $request->input('id');
-        $productName = $request->input('name');
-        $productPrice = $request->input('price');
-        $quantity = $request->input('quantity', 1);
-
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] += $quantity;
-        } else {
-            $cart[$productId] = [
-                "name" => $productName,
-                "price" => $productPrice,
-                "quantity" => $quantity,
-            ];
-        }
-
-        session()->put('cart', $cart);
-
-        return redirect()->route('cart.index')->with('success', 'Thêm vào giỏ hàng thành công!');
+        
+        // Nếu là Request thông thường: Chuyển hướng
+        return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để thêm giỏ hàng.');
     }
+
+    // === 2. XỬ LÝ DỮ LIỆU ===
+    $productId = $request->input('id');
+    $productName = $request->input('name');
+    $productPrice = $request->input('price');
+    $quantity = $request->input('quantity', 1);
+
+    // Lấy giỏ hàng từ session
+    $cart = session()->get('cart', []);
+
+    // Thêm/Cập nhật sản phẩm
+    if (isset($cart[$productId])) {
+        $cart[$productId]['quantity'] += $quantity;
+    } else {
+        $cart[$productId] = [
+            "name" => $productName,
+            "price" => $productPrice,
+            "quantity" => $quantity,
+        ];
+    }
+
+    // Lưu lại session
+    session()->put('cart', $cart);
+    
+    // Tính toán số lượng item mới trong giỏ hàng (ví dụ: tổng số lượng sản phẩm)
+    $newCartCount = array_sum(array_column($cart, 'quantity'));
+
+
+    // === 3. PHẢN HỒI (QUAN TRỌNG CHO AJAX) ===
+    
+    if ($isAjax) {
+        // Nếu là AJAX: Trả về thành công JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'Thêm vào giỏ hàng thành công!',
+            'cart_count' => $newCartCount,
+        ]);
+    }
+
+    // Nếu là Request thông thường: Tiếp tục chuyển hướng (hoặc dùng back())
+    return redirect()->route('cart.index')->with('success', 'Thêm vào giỏ hàng thành công!');
+}
 
     public function update(Request $request)
 {

@@ -1,71 +1,105 @@
 <x-layout-admin>
 
-    <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow">
-        <h1 class="text-lg font-bold">Quản lý danh mục </h1>
-        <div>
+    <div class="flex justify-between items-center bg-white p-3 rounded-xl shadow-lg border-l-4 border-indigo-500">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2h2.5M12 21v-4M9.5 7h5" />
+            </svg>
+            Quản lý danh mục
+        </h1>
+        <div class="flex space-x-3">
+            {{-- Nút Thêm (Giữ nguyên màu sắc) --}}
             <a href="{{ route('category.create') }}"
-                class="bg-green-500 text-white px-4 py-2 mr-2 rounded-lg hover:bg-green-600 inline-block">
-                + Thêm
+                class="inline-flex items-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-150 shadow-md font-semibold">
+                <i class="fa fa-plus mr-1"></i> Thêm
             </a>
 
+            {{-- Nút Thùng rác (Giữ nguyên màu sắc) --}}
             <a href="{{ route('category.trash') }}"
-                class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Thùng rác</button></a>
+                class="inline-flex items-center bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-150 shadow-md font-semibold">
+                <i class="fa fa-trash-alt mr-1"></i> Thùng rác
+            </a>
         </div>
     </div>
 
-    <div class="mt-6 bg-white p-4 rounded-lg shadow">
-        <table class="w-full border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border p-2 text-left">Hình</th>
-                    <th class="border p-2 text-left">Tên danh mục</th>
-                    <th class="border p-2 text-left">Slug</th>
-                    <th class="border p-2 text-left">Chức năng</th>
-                    <th class="border p-2 text-left">ID</th>
+    <div class="mt-6 bg-white p-6 rounded-xl shadow-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Hình ảnh</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Tên danh mục</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Slug</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Trạng thái</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Chức năng</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider border-b">ID</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-white divide-y divide-gray-200">
                 @foreach ($list as $item)
-                <tr>
-                    <td class="border border-gray-300 p-2">
+                <tr class="hover:bg-gray-50 transition duration-150">
+                    
+                    {{-- Cột Hình ảnh --}}
+                    <td class="px-4 py-2 whitespace-nowrap">
                         <img src="{{ asset('assets/images/categories/'.$item->image) }}"
-                        class="w-32 h-auto" alt="{{ $item->image }}">
+                        class="w-16 h-16 object-cover rounded border" alt="{{ $item->name }}"> {{-- Giới hạn kích thước và thêm bo góc --}}
                     </td>
                     
-                    <td class="border border-gray-300 p-2">{{$item->name}}</td>
+                    {{-- Cột Tên --}}
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{$item->name}}</td>
                     
-                    <td class="border border-gray-300 p-2">{{$item->slug}}</td>
-                    
-                    <td class="border border-gray-300 p-2 text-center">
-                        <a href="{{ route('category.status', ['category' => $item->id]) }}" class="mr-3">
+                    {{-- Cột Slug --}}
+                    <td class="px-4 py-2 text-sm text-gray-500">{{$item->slug}}</td>
+
+                    {{-- Cột Trạng thái (Thay bằng icon tròn nhỏ gọn) --}}
+                    <td class="px-4 py-2 whitespace-nowrap text-center">
+                        <a href="{{ route('category.status', ['category' => $item->id]) }}" 
+                           class="inline-block transition duration-150 hover:scale-110">
                             @if($item->status == 1)
-                                <i class="fa fa-toggle-on text-green-500" aria-hidden="true" title="Activated"></i> 
+                                <span class="text-green-600 font-semibold" title="Đang hoạt động">
+                                    <i class="fa fa-circle fa-sm"></i>
+                                </span>
                             @else
-                                <i class="fa fa-toggle-off text-red-500" aria-hidden="true" title="Deactivated"></i>
+                                <span class="text-red-600 font-semibold" title="Đã ẩn">
+                                    <i class="fa fa-circle fa-sm"></i>
+                                </span>
                             @endif
                         </a>
-
-                        <a href="{{ route('category.edit', ['category' => $item->id]) }}" class="mr-3">
-                            <i class="fa fa-edit text-blue-500" aria-hidden="true" title="Edit"></i> 
-                        </a>
-
-                        <a href="{{ route('category.show', ['category' => $item->id]) }}" class="mr-3">
-                            <i class="fa fa-eye text-gray-600" title="Xem chi tiết"></i>
-                        </a>
-
-                        <a href="{{ route('category.delete', ['category' => $item->id]) }}">
-                            <i class="fa fa-trash text-red-500" aria-hidden="true" title="Delete"></i>
-                        </a>
                     </td>
                     
-                    <td class="border border-gray-300 p-2">{{$item->id}}</td>
+                    {{-- Cột Chức năng --}}
+                    <td class="px-4 py-2 whitespace-nowrap text-center text-sm font-medium">
+                        <div class="flex justify-center space-x-3">
+                            
+                            {{-- Chỉnh sửa --}}
+                            <a href="{{ route('category.edit', ['category' => $item->id]) }}" 
+                               class="text-blue-600 hover:text-blue-800 transition duration-150" title="Chỉnh sửa">
+                                <i class="fa fa-edit fa-lg"></i>
+                            </a>
+                            
+                            {{-- Xem chi tiết --}}
+                            <a href="{{ route('category.show', ['category' => $item->id]) }}" 
+                               class="text-gray-600 hover:text-gray-900 transition duration-150" title="Xem chi tiết">
+                                <i class="fa fa-eye fa-lg"></i>
+                            </a>
+                            
+                            {{-- Xóa (Chuyển vào thùng rác) --}}
+                            <a href="{{ route('category.delete', ['category' => $item->id]) }}" 
+                               class="text-red-600 hover:text-red-800 transition duration-150" title="Chuyển vào thùng rác">
+                                <i class="fa fa-trash fa-lg"></i>
+                            </a>
+                        </div>
+                    </td>
+                    
+                    {{-- Cột ID --}}
+                    <td class="px-4 py-2 whitespace-nowrap text-center text-sm text-gray-400">{{$item->id}}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
-        
-        <div class="mt-8">{{$list->Links()}}</div>
-        </table>
+
+        <div class="mt-6 p-4">
+            {{ $list->Links() }}
+        </div>
     </div>
 
 </x-layout-admin>

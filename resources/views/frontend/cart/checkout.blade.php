@@ -75,6 +75,10 @@
             </div>
 
             <div class="mt-6 flex gap-4">
+                <button type="button" onclick="history.back()"
+                        class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-400 transition">
+                    Quay lại
+                </button>
                 <button type="submit" id="btnPay"
                         class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
                     Thanh toán

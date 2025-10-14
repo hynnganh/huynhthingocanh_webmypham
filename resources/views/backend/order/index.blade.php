@@ -1,90 +1,138 @@
 <x-layout-admin>
-    <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow">
-        <h1 class="text-lg font-bold">Quản lý đơn hàng</h1>
+
+    <div class="flex justify-between items-center bg-white p-3 rounded-xl shadow-lg border-l-4 border-indigo-500 mb-6">
+        <h1 class="text-xl font-bold text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Quản lý Đơn hàng
+        </h1>
         <div>
             <a href="{{ route('order.trash') }}"
-               class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Thùng rác</a>
+               class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-150 shadow-md font-semibold">
+               <i class="fa fa-trash-alt mr-1"></i> Thùng rác
+            </a>
         </div>
     </div>
 
-    <div class="mt-6 bg-white p-4 rounded-lg shadow overflow-x-auto">
-        <table class="w-full border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border p-2 text-left">ID</th>
-                    <th class="border p-2 text-left">Tên khách hàng</th>
-                    <th class="border p-2 text-left">Email</th>
-                    <th class="border p-2 text-left">Số điện thoại</th>
-                    <th class="border p-2 text-left">Địa chỉ</th>
-                    <th class="border p-2 text-left">Chức năng</th>
-                    <th class="border p-2 text-left">Thanh toán</th>
-                    <th class="border p-2 text-left">Trạng thái giao hàng</th>
+    <div class="mt-6 bg-white p-6 rounded-xl shadow-lg overflow-x-auto">
+        
+        @if(session('success'))
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                <p>{{ session('success') }}</p>
+            </div>
+        @endif
+        
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-12">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-1/5">Thông tin khách hàng</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-1/4">Địa chỉ</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/5">Thanh toán</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/6">Trạng thái</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-1/6">Chức năng</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-white divide-y divide-gray-200">
                 @foreach ($orders as $order)
-                    <tr class="hover:bg-gray-100">
-                        <td class="border border-gray-300 p-2">{{ $order->id }}</td>
-                        <td class="border border-gray-300 p-2">{{ $order->name }}</td>
-                        <td class="border border-gray-300 p-2">{{ $order->email }}</td>
-                        <td class="border border-gray-300 p-2">{{ $order->phone }}</td>
-                        <td class="border border-gray-300 p-2">{{ $order->address }}</td>
-
-                        <td class="border border-gray-300 p-2 text-center space-x-2">
-                            <a href="{{ route('order.editStatus', $order->id) }}" title="Cập nhật trạng thái">
-                                <i class="fa fa-edit text-blue-500"></i>
-                            </a>
-                            <a href="{{ route('order.show', $order->id) }}" title="Xem chi tiết">
-                                <i class="fa fa-eye text-gray-600"></i>
-                            </a>
-                            <a href="{{ route('order.delete', $order->id) }}" title="Xóa">
-                                <i class="fa fa-trash text-red-500"></i>
-                            </a>
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        
+                        {{-- ID --}}
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{{ $order->id }}</td>
+                        
+                        {{-- Thông tin khách hàng (Gộp) --}}
+                        <td class="px-4 py-3 text-sm text-gray-700">
+                            <div class="font-semibold text-gray-900">{{ $order->name }}</div>
+                            <div class="text-xs text-gray-500">{{ $order->email }}</div>
+                            <div class="text-xs text-indigo-600">{{ $order->phone }}</div>
                         </td>
-                        <td class="border border-gray-300 p-2 text-center space-y-1">
+                        
+                        {{-- Địa chỉ (Giới hạn hiển thị) --}}
+                        <td class="px-4 py-3 text-sm text-gray-500 max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title="{{ $order->address }}">
+                            {{ Str::limit($order->address, 50) }}
+                        </td>
+
+                        {{-- Thanh toán --}}
+                        <td class="px-4 py-3 text-center space-y-1">
                             @if($order->payment_method == 'cod')
-                                <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-semibold">
-                                    COD
+                                <span class="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                    <i class="fa fa-money-bill-alt mr-1"></i> COD
                                 </span>
                             @elseif($order->payment_method == 'bank')
-                                @if($order->status == 1)
-                                    <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-semibold">
-                                        Đã thanh toán
+                                @if($order->status == 1) 
+                                    <span class="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                        <i class="fa fa-check mr-1"></i> Đã thanh toán
                                     </span>
                                 @else
-                                    <form method="POST" action="{{ route('order.confirmPayment', $order->id) }}">
+                                    <form method="POST" action="{{ route('order.confirmPayment', $order->id) }}" class="inline-block">
                                         @csrf
                                         <button type="submit"
-                                                class="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 px-3 py-1 rounded-lg text-sm font-semibold transition">
-                                            Xác nhận thanh toán
+                                                class="inline-flex items-center bg-yellow-500 text-yellow-900 font-bold hover:bg-yellow-600 px-3 py-1 rounded-lg text-xs transition duration-150 shadow-md transform hover:scale-105">
+                                            <i class="fa fa-dollar-sign mr-1"></i> Xác nhận thanh toán
                                         </button>
                                     </form>
                                 @endif
+                            @else
+                                <span class="inline-flex items-center bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">
+                                    {{ $order->payment_method }}
+                                </span>
                             @endif
                         </td>
 
+                       
 
-                        <td class="border border-gray-300 p-2 text-center">
-                            @switch($order->status)
-                                @case(1) <span class="text-yellow-600">Chờ xác nhận</span> @break
-                                @case(2) <span class="text-blue-600">Đã xác nhận</span> @break
-                                @case(3) <span class="text-orange-600">Đang chuẩn bị hàng</span> @break
-                                @case(4) <span class="text-green-600">Đang giao hàng</span> @break
-                                @case(5) <span class="text-teal-600">Giao thành công</span> @break
-                                @case(6) <span class="text-red-600">Đã hủy</span> @break
-                                @case(7) <span class="text-purple-600">Hoàn trả</span> @break
-                                @case(8) <span class="text-indigo-600">Đổi hàng</span> @break
-                                @case(9) <span class="text-gray-600">Từ chối</span> @break
-                                @case(10) <span class="text-pink-600">Khác</span> @break
-                                @default <span class="text-gray-500">Chưa xác định</span>
-                            @endswitch
+                        {{-- Trạng thái Giao hàng (Status) --}}
+                        <td class="px-4 py-3 text-center">
+                            @php
+                                // Định nghĩa trạng thái và màu sắc
+                                $statusMap = [
+                                    1 => ['text' => 'Chờ xác nhận', 'class' => 'bg-yellow-100 text-yellow-800'],
+                                    2 => ['text' => 'Đã xác nhận', 'class' => 'bg-blue-100 text-blue-800'],
+                                    3 => ['text' => 'Đang chuẩn bị', 'class' => 'bg-orange-100 text-orange-800'],
+                                    4 => ['text' => 'Đang giao hàng', 'class' => 'bg-green-100 text-green-800'],
+                                    5 => ['text' => 'Giao thành công', 'class' => 'bg-teal-100 text-teal-800'],
+                                    6 => ['text' => 'Đã hủy', 'class' => 'bg-red-100 text-red-800'],
+                                    7 => ['text' => 'Hoàn trả', 'class' => 'bg-purple-100 text-purple-800'],
+                                    8 => ['text' => 'Đổi hàng', 'class' => 'bg-indigo-100 text-indigo-800'],
+                                    9 => ['text' => 'Từ chối', 'class' => 'bg-gray-100 text-gray-800'],
+                                    10 => ['text' => 'Khác', 'class' => 'bg-pink-100 text-pink-800'],
+                                ];
+                                $status = $statusMap[$order->status] ?? ['text' => 'Không rõ', 'class' => 'bg-gray-200 text-gray-600'];
+                            @endphp
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold {{ $status['class'] }}">
+                                {{ $status['text'] }}
+                            </span>
+                        </td>
+
+
+                        {{-- Chức năng --}}
+                        <td class="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                            <div class="flex justify-center space-x-3">
+                                {{-- Cập nhật trạng thái --}}
+                                <a href="{{ route('order.editStatus', $order->id) }}" title="Cập nhật trạng thái"
+                                   class="text-blue-600 hover:text-blue-800 transition duration-150 hover:scale-110">
+                                    <i class="fa fa-sync fa-lg"></i>
+                                </a>
+                                {{-- Xem chi tiết --}}
+                                <a href="{{ route('order.show', $order->id) }}" title="Xem chi tiết"
+                                   class="text-gray-600 hover:text-gray-900 transition duration-150 hover:scale-110">
+                                    <i class="fa fa-eye fa-lg"></i>
+                                </a>
+                                {{-- Xóa --}}
+                                <a href="{{ route('order.delete', $order->id) }}" title="Chuyển vào thùng rác"
+                                   class="text-red-600 hover:text-red-800 transition duration-150 hover:scale-110">
+                                    <i class="fa fa-trash fa-lg"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <!-- Pagination -->
-        <div class="mt-8">{{ $orders->links() }}</div>
+        <div class="mt-6 p-4">
+            {{ $orders->Links() }}
+        </div>
     </div>
 </x-layout-admin>

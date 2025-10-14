@@ -3,39 +3,56 @@
         Đăng Nhập
     </x-slot:title>
 
-    <main>
-        <div class="container m-10 mx-auto max-w-md px-4 py-8 bg-white shadow-lg rounded-lg border border-gray-200"> 
-            <!-- Tiêu đề -->
-            <h2 class="text-3xl font-semibold text-center text-pink-600 mb-8">Đăng Nhập</h2>
-        
-            <!-- Form đăng nhập -->
+    <main class="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-white to-purple-100 p-3">
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 sm:p-10 border border-gray-100 transform hover:scale-105 transition-transform duration-300 ease-in-out">
+            <h2 class="text-2xl font-extrabold text-center text-pink-700 mb-10 tracking-tight">
+                Chào mừng trở lại!
+            </h2>
+            
             <form action="{{ route('login') }}" method="POST">
                 @csrf
-                <!-- Input Email -->
-                <div class="mb-6">
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" name="email" id="email" class="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500" required>
+                <div class="mb-6 relative">
+                    <input type="email" name="email" id="email" required
+                           class="peer w-full px-3 py-3 border-b-2 border-gray-300 focus:border-pink-500 outline-none bg-transparent text-gray-800 text-lg transition-all duration-300"
+                           placeholder=" " {{-- Dùng placeholder rỗng để label nổi lên --}}
+                    />
+                    <label for="email" 
+                           class="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3.5 
+                                  peer-focus:-top-3.5 peer-focus:text-pink-600 peer-focus:text-sm transition-all duration-300 cursor-text">
+                        Địa chỉ Email
+                    </label>
                 </div>
         
-                <!-- Input Mật khẩu -->
-                <div class="mb-2">
-                    <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
-                    <input type="password" name="password" id="password" class="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500" required>
+                <div class="mb-6 relative">
+                    <input type="password" name="password" id="password" required
+                           class="peer w-full px-3 py-3 border-b-2 border-gray-300 focus:border-pink-500 outline-none bg-transparent text-gray-800 text-lg transition-all duration-300"
+                           placeholder=" "
+                    />
+                    <label for="password" 
+                           class="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3.5 
+                                  peer-focus:-top-3.5 peer-focus:text-pink-600 peer-focus:text-sm transition-all duration-300 cursor-text">
+                        Mật khẩu
+                    </label>
                 </div>
 
-                <!-- Link quên mật khẩu -->
-                <div class="text-right mb-6">
-                    <a href="{{ route('password.request') }}" class="text-pink-600 hover:text-pink-700 text-sm">Quên mật khẩu?</a>
+                <div class="text-right mb-8">
+                    <a href="{{ route('password.request') }}" class="text-pink-600 hover:text-pink-700 text-sm font-medium transition duration-200">Quên mật khẩu?</a>
                 </div>
         
-                <!-- Button đăng nhập -->
                 <div class="mb-6">
-                    <button type="submit" class="w-full bg-pink-600 text-white py-3 px-4 rounded-md hover:bg-pink-700 transition duration-300">Đăng Nhập</button>
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white py-2 px-4 rounded-full text-lg font-bold 
+                                   hover:from-pink-600 hover:to-red-600 focus:outline-none focus:ring-4 focus:ring-pink-200 
+                                   transform hover:-translate-y-1 transition duration-300 ease-in-out">
+                        Đăng Nhập
+                    </button>
                 </div>
         
-                <!-- Link đăng ký -->
-                <div class="text-center mt-4">
-                    <a href="{{ route('register') }}" class="text-pink-600 hover:text-pink-700">Chưa có tài khoản? Đăng ký ngay!</a>
+                <div class="text-center mt-8">
+                    <p class="text-gray-600">
+                        Chưa có tài khoản? 
+                        <a href="{{ route('register') }}" class="text-pink-600 hover:text-pink-700 font-semibold transition duration-200">Đăng ký ngay!</a>
+                    </p>
                 </div>
             </form>
         </div>

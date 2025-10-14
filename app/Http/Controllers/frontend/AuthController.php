@@ -203,8 +203,7 @@ class AuthController extends Controller
     }
 
 
-
-    public function update(Request $request)
+public function update(Request $request)
 {
     $user = auth()->user();
 
@@ -222,11 +221,11 @@ class AuthController extends Controller
     // Upload avatar
     if ($request->hasFile('avatar')) {
         $file = $request->file('avatar');
-        $filename = time() . '_' . $file->getClientOriginalName();
+        
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         $file->move(public_path('assets/images/user'), $filename);
 
-        // Xóa avatar cũ nếu có
-        if ($user->avatar && file_exists(public_path('assets/images/user/' . $user->avatar))) {
+        if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
             unlink(public_path('assets/images/user/' . $user->avatar));
         }
 
@@ -234,8 +233,12 @@ class AuthController extends Controller
     }
 
     $user->save();
-
-    return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
+    return response()->json([
+        'success' => true,
+        'message' => 'Cập nhật hồ sơ thành công!',
+        'user' => $user->fresh()->toArray(),
+        'avatar_path' => $user->avatar, 
+    ], 200);
 }
 
 }

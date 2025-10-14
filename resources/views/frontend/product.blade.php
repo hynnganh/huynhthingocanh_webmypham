@@ -7,7 +7,7 @@
             <div class="flex flex-col lg:flex-row gap-6">
                 <!-- Sidebar -->
                 <aside
-                    class="w-full lg:w-1/4 bg-white p-4 rounded-lg shadow-md border max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
+                    class="w-full lg:w-1/3 bg-white p-4 rounded-lg shadow-md border max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
 
                     <!-- Bộ lọc giá -->
                     <div class="mb-6">
@@ -47,7 +47,7 @@
                 </aside>
 
                 <!-- Danh sách sản phẩm -->
-                <section class="w-full lg:w-3/4">
+                <section class="w-full lg:w-2/3">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-mono text-pink-600">Sản phẩm</h1>
 

@@ -86,7 +86,7 @@ class ProductController extends Controller
             ->whereIn('category_id', $listCategoryIds)
             ->where('id', '!=', $product->id)
             ->orderBy('created_at', 'desc')
-            ->limit(4)
+            ->limit(6)
             ->get();
 
         // Lấy đánh giá
