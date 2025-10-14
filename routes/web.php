@@ -220,3 +220,11 @@ Route::prefix('admin')->group(function () {
     Route::resource('order', BackendOrderController::class);
 
 });
+Route::get('/test-db', function () {
+    try {
+        \DB::connection()->getPdo();
+        return '✅ Kết nối database thành công!';
+    } catch (\Exception $e) {
+        return '❌ Lỗi DB: ' . $e->getMessage();
+    }
+});
