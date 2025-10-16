@@ -30,11 +30,14 @@ RUN php -d opcache.enable=0 /usr/local/bin/composer install --no-dev --optimize-
 
 # CHỈNH SỬA CẤU HÌNH PHP: Tăng bộ nhớ và cho phép SSL cho MySQL
 RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory.ini
+# Lưu ý: 'pdo_mysql.default_ssl = require' chỉ bắt buộc SSL nếu PHP/MySQL client hỗ trợ.
 RUN echo "pdo_mysql.default_ssl = require" > /usr/local/etc/php/conf.d/ssl.ini
 
 # Cấu hình Web Root Apache sang thư mục 'public'
+# Điều chỉnh cấu hình Virtual Host mặc định
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
+# Điều chỉnh thư mục gốc trong cấu hình Apache chung (thường không cần thiết nếu đã cấu hình Virtual Host)
+# RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
 
 # CẤP QUYỀN GHI: Cực kỳ quan trọng cho Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
@@ -44,6 +47,9 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 EXPOSE 80
 
 # CHẠY TẤT CẢ CÁC LỆNH KHI KHỞI ĐỘNG (RUN TIME)
-# Migration -> Cache -> Apache (Web Server)
-# Lệnh này phải được dùng để đảm bảo Migration và Caching được chạy với ENV vars đầy đủ
-#CMD /bin/sh -c "php artisan config:cache || true && php artisan route:cache || true && php artisan view:cache || true && apache2-foreground"
+# Đã thêm lệnh Migration vào đầu chuỗi
+CMD /bin/sh -c "php artisan migrate --force || true && \
+               php artisan config:cache || true && \
+               php artisan route:cache || true && \
+               php artisan view:cache || true && \
+               apache2-foreground"
