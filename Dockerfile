@@ -32,10 +32,13 @@ RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
 # Chuyển root Apache tới thư mục public của Laravel
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+# ✅ Sửa cả 2 file cấu hình chính của Apache cho chắc chắn
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/*.conf \
+    /etc/apache2/sites-available/000-default.conf \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
+
 
 # CẤP QUYỀN GHI CHO LARAVEL
 RUN chown -R www-data:www-data /var/www/html
