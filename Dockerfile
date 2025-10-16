@@ -1,17 +1,20 @@
 # Dùng base image chính thức của PHP với Apache
 FROM php:8.2-apache
 
-# CÀI ĐẶT DRIVER MYSQL BỊ THIẾU
-# Cần gói libzip-dev, libicu-dev và các gói khác cho các extension nếu cần
-RUN apt-get update && \
-    apt-get install -y libzip-dev libicu-dev && \
-    docker-php-ext-install pdo_mysql opcache intl zip && \
-    rm -rf /var/lib/apt/lists/*
+# Đặt thư mục làm việc mặc định
+WORKDIR /var/www/html
 
-# Cài đặt các dependencies cần thiết (zip, git, curl)
-# LƯU Ý: Những gói này đã có hoặc đã được cài trong bước trên (apt-get install)
+# CÀI ĐẶT CÁC GÓI VÀ DRIVER CƠ BẢN
 RUN apt-get update && \
-    apt-get install -y git curl && \
+    apt-get install -y \
+        libzip-dev \
+        libicu-dev \
+        git \
+        curl \
+        # Thêm mariadb-client/mysql-client để có thể chạy lệnh mysql nếu cần
+        mariadb-client \
+    && \
+    docker-php-ext-install pdo_mysql opcache intl zip && \
     rm -rf /var/lib/apt/lists/*
 
 # Cài Composer toàn cục
@@ -20,30 +23,36 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Bật module rewrite cho Laravel route
 RUN a2enmod rewrite
 
-# Đặt thư mục làm việc mặc định
-WORKDIR /var/www/html
-
 # Copy toàn bộ code dự án vào
 COPY . .
 
 # Cài các thư viện của Laravel
-RUN composer install --no-dev --optimize-autoloader --prefer-dist
+# TẮT opcache để composer install hoạt động ổn định hơn
+RUN php -d opcache.enable=0 /usr/local/bin/composer install --no-dev --optimize-autoloader --prefer-dist
 
-# Chuyển root Apache tới thư mục public của Laravel
-# Sử dụng chuỗi cố định để tránh lỗi biến môi trường trong lệnh sed
+# CHỈNH SỬA CẤU HÌNH PHP: Tăng bộ nhớ và cho phép SSL cho MySQL
+# Rất quan trọng để tránh lỗi Out of Memory (500/502) và SSL cho Clever Cloud
+RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory.ini
+RUN echo "pdo_mysql.default_ssl = require" > /usr/local/etc/php/conf.d/ssl.ini
+
+# Cấu hình Web Root Apache sang thư mục 'public'
+# Giải quyết lỗi AH01276
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
+
 # CẤP QUYỀN GHI: Cực kỳ quan trọng cho Laravel
 # Apache user/group là www-data
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Cấu hình cache cho Production (tùy chọn)
-# RUN php artisan config:cache
-# RUN php artisan view:cache
+# CHẠY CÁC LỆNH CACHE CUỐI CÙNG (CỰC KỲ KHUYẾN KHÍCH CHO PRODUCTION)
+# Điều này tối ưu hóa tốc độ load Laravel
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
 
 # Mở cổng web mặc định của Apache
 EXPOSE 80
-
+CMD /bin/sh -c "php artisan migrate --force && apache2-foreground"
 # Chạy server
 CMD ["apache2-foreground"]
