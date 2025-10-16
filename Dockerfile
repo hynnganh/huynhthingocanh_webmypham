@@ -1,41 +1,49 @@
-# Sử dụng PHP 8.2 kèm Apache
+# Dùng base image chính thức của PHP với Apache
 FROM php:8.2-apache
 
-# Cài đặt extension và thư viện cần thiết cho Laravel
-RUN apt-get update && apt-get install -y \
-    libzip-dev libicu-dev git curl unzip \
-    && docker-php-ext-install pdo_mysql zip intl opcache \
-    && rm -rf /var/lib/apt/lists/*
+# CÀI ĐẶT DRIVER MYSQL BỊ THIẾU
+RUN apt-get update && \
+    apt-get install -y libzip-dev libicu-dev && \
+    docker-php-ext-install pdo_mysql opcache intl zip && \
+    rm -rf /var/lib/apt/lists/*
 
-# Cài Composer
+# Cài đặt các dependencies cần thiết (zip, git, curl)
+RUN apt-get update && \
+    apt-get install -y git curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Cài Composer toàn cục
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Bật mod_rewrite cho Laravel routes
+# Bật module rewrite cho Laravel route
 RUN a2enmod rewrite
 
-# Thiết lập thư mục làm việc
+# ⚙️ Cho phép Laravel sử dụng .htaccess (rất quan trọng)
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Đặt thư mục làm việc mặc định
 WORKDIR /var/www/html
 
-# Copy toàn bộ mã nguồn vào container
+# Copy toàn bộ code dự án vào
 COPY . .
 
-# Cài đặt dependencies của Laravel
+# Cài các thư viện của Laravel
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
-# Thiết lập Apache Document Root trỏ về /public
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
-# Cấp quyền ghi cho storage và cache và đảm bảo www-data là chủ sở hữu toàn bộ web root
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-# Khai báo port cho Render
-ARG PORT=10000
-ENV PORT=${PORT}
-RUN sed -i "s|<VirtualHost \*:80>|<VirtualHost *:${PORT}>|g" /etc/apache2/sites-available/000-default.conf
+# Chuyển root Apache tới thư mục public của Laravel (dùng giá trị thật)
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/apache2.conf
 
-# Mở port
-EXPOSE ${PORT}
+# CẤP QUYỀN GHI: cực kỳ quan trọng cho Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Chạy Apache
-CMD ["apache2-foreground"]
+# Đặt ServerName để tránh cảnh báo Apache
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Cho phép Render chỉ định port động
+ENV PORT=10000
+EXPOSE 10000
+
+# Lệnh chạy cuối cùng (cho Render)
+CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && apache2-foreground"]
