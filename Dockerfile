@@ -39,11 +39,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
-
 # CẤP QUYỀN GHI CHO LARAVEL
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 755 /var/www/html
-
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # Mở cổng web mặc định của Apache
 EXPOSE 80
 
