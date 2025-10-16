@@ -1,4 +1,4 @@
-# Dùng image PHP chính thức có sẵn Apache
+# Dùng base image chính thức của PHP với Apache
 FROM php:8.2-apache
 
 # Cài đặt extension cần thiết cho Laravel
@@ -13,13 +13,13 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Bật module rewrite cho Apache (Laravel cần)
 RUN a2enmod rewrite
 
-# ⚙️ Cho phép .htaccess hoạt động
+# ⚙️ Cho phép .htaccess hoạt động (fix lỗi 403 Forbidden)
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 # Đặt thư mục làm việc
 WORKDIR /var/www/html
 
-# Copy code vào container
+# Copy toàn bộ code vào container
 COPY . .
 
 # Cài các dependency của Laravel
@@ -27,20 +27,23 @@ RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
 # Thiết lập thư mục public là DocumentRoot
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+# ✅ Cập nhật DocumentRoot trong tất cả file cấu hình Apache (không chỉ 000-default.conf)
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/000-default.conf
+    /etc/apache2/sites-available/000-default.conf \
+    /etc/apache2/apache2.conf \
+    /etc/apache2/conf-available/*.conf
 
 # Sửa quyền cho storage và cache
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html && \
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Đặt ServerName để tránh cảnh báo
+# Tránh cảnh báo ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Cho phép Render thay đổi PORT (quan trọng)
+# Cho phép Render thay đổi PORT (Render tự đặt port động)
 ENV PORT=80
 EXPOSE 80
 
-# Chạy Apache và đảm bảo Listen đúng port Render cấp
+# Lệnh chạy Apache (tự cập nhật port Render)
 CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && apache2-foreground"]
