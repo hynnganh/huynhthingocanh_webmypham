@@ -41,11 +41,10 @@ EXPOSE 80
 
 # Cho phép Render chỉ định port động
 # Nếu Render cấp biến PORT (ví dụ 10000), Apache sẽ listen đúng port đó
-ENV PORT=80
-RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
+# Cho phép Render chỉ định port động
 
-# Đặt ServerName để tránh cảnh báo AH00558
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+ENV PORT=10000
+EXPOSE 10000
 
-# Chạy Apache
-CMD ["apache2-foreground"]
+# ✅ Lệnh chạy cuối cùng
+CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && apache2-foreground"]
