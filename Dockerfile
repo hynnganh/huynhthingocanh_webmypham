@@ -25,11 +25,10 @@ RUN composer install --no-dev --optimize-autoloader --prefer-dist
 # Thiết lập Apache Document Root trỏ về /public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# Cấp quyền ghi cho storage và cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+# Cấp quyền ghi cho storage và cache và đảm bảo www-data là chủ sở hữu toàn bộ web root
+RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
 # Khai báo port cho Render
 ARG PORT=10000
 ENV PORT=${PORT}
