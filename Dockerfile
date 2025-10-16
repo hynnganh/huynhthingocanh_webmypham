@@ -46,4 +46,4 @@ EXPOSE 80
 # CHẠY TẤT CẢ CÁC LỆNH KHI KHỞI ĐỘNG (RUN TIME)
 # Migration -> Cache -> Apache (Web Server)
 # Lệnh này phải được dùng để đảm bảo Migration và Caching được chạy với ENV vars đầy đủ
-CMD /bin/sh -c "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && apache2-foreground"
+CMD /bin/sh -c "php artisan migrate --force && apache2-foreground"
