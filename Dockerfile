@@ -1,54 +1,46 @@
-# Dùng base image chính thức của PHP với Apache
+# Dùng image PHP chính thức có sẵn Apache
 FROM php:8.2-apache
 
-# CÀI ĐẶT DRIVER MYSQL BỊ THIẾU
+# Cài đặt extension cần thiết cho Laravel
 RUN apt-get update && \
-    apt-get install -y libzip-dev libicu-dev && \
-    docker-php-ext-install pdo_mysql opcache intl zip && \
+    apt-get install -y git curl libzip-dev libicu-dev && \
+    docker-php-ext-install pdo_mysql zip intl && \
     rm -rf /var/lib/apt/lists/*
 
-# Cài đặt các dependencies cần thiết (zip, git, curl)
-RUN apt-get update && \
-    apt-get install -y git curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# Cài Composer toàn cục
+# Cài composer toàn cục
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Bật module rewrite cho Laravel route
+# Bật module rewrite cho Apache (Laravel cần)
 RUN a2enmod rewrite
 
-# ⚙️ Cho phép Laravel sử dụng .htaccess (fix lỗi Forbidden)
+# ⚙️ Cho phép .htaccess hoạt động
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-# Đặt thư mục làm việc mặc định
+# Đặt thư mục làm việc
 WORKDIR /var/www/html
 
-# Copy toàn bộ code dự án vào
+# Copy code vào container
 COPY . .
 
-# Cài các thư viện của Laravel
+# Cài các dependency của Laravel
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
-# Chuyển root Apache tới thư mục public của Laravel
+# Thiết lập thư mục public là DocumentRoot
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-
-# ✅ Sửa cả 2 file cấu hình chính của Apache cho chắc chắn
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/000-default.conf \
-    /etc/apache2/apache2.conf \
-    /etc/apache2/conf-available/*.conf
+    /etc/apache2/sites-available/000-default.conf
 
-# CẤP QUYỀN GHI CHO LARAVEL
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-# Mở cổng web mặc định của Apache
-EXPOSE 80
+# Sửa quyền cho storage và cache
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Cho phép Render chỉ định port động
-ENV PORT=80
-RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf || true
+# Đặt ServerName để tránh cảnh báo
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# LỆNH CHẠY APACHE VỚI PORT RENDER CẤP
+# Cho phép Render thay đổi PORT (quan trọng)
+ENV PORT=80
+EXPOSE 80
+
+# Chạy Apache và đảm bảo Listen đúng port Render cấp
 CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && apache2-foreground"]
