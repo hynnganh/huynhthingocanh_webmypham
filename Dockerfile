@@ -30,9 +30,9 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
 # Chuyển root Apache tới thư mục public của Laravel
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
+# Sử dụng chuỗi cố định để tránh lỗi biến môi trường trong lệnh sed
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
 # CẤP QUYỀN GHI: Cực kỳ quan trọng cho Laravel
 # Apache user/group là www-data
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
