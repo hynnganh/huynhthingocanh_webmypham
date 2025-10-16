@@ -11,7 +11,6 @@ RUN apt-get update && \
         libicu-dev \
         git \
         curl \
-        # Thêm mariadb-client/mysql-client để có thể chạy lệnh mysql nếu cần
         mariadb-client \
     && \
     docker-php-ext-install pdo_mysql opcache intl zip && \
@@ -27,32 +26,24 @@ RUN a2enmod rewrite
 COPY . .
 
 # Cài các thư viện của Laravel
-# TẮT opcache để composer install hoạt động ổn định hơn
 RUN php -d opcache.enable=0 /usr/local/bin/composer install --no-dev --optimize-autoloader --prefer-dist
 
 # CHỈNH SỬA CẤU HÌNH PHP: Tăng bộ nhớ và cho phép SSL cho MySQL
-# Rất quan trọng để tránh lỗi Out of Memory (500/502) và SSL cho Clever Cloud
 RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory.ini
 RUN echo "pdo_mysql.default_ssl = require" > /usr/local/etc/php/conf.d/ssl.ini
 
 # Cấu hình Web Root Apache sang thư mục 'public'
-# Giải quyết lỗi AH01276
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
 
 # CẤP QUYỀN GHI: Cực kỳ quan trọng cho Laravel
-# Apache user/group là www-data
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# CHẠY CÁC LỆNH CACHE CUỐI CÙNG (CỰC KỲ KHUYẾN KHÍCH CHO PRODUCTION)
-# Điều này tối ưu hóa tốc độ load Laravel
-# RUN php artisan config:cache
-# RUN php artisan route:cache
-# RUN php artisan view:cache
-
-# Mở cổng web mặc định của Apache
+# MỞ CỔNG ỨNG DỤNG
 EXPOSE 80
 
-# Chạy server
-CMD ["apache2-foreground"]
+# CHẠY TẤT CẢ CÁC LỆNH KHI KHỞI ĐỘNG (RUN TIME)
+# Migration -> Cache -> Apache (Web Server)
+# Lệnh này phải được dùng để đảm bảo Migration và Caching được chạy với ENV vars đầy đủ
+CMD /bin/sh -c "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && apache2-foreground"
