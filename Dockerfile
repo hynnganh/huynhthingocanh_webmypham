@@ -45,14 +45,10 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# CHẠY CÁC LỆNH CACHE CUỐI CÙNG (CỰC KỲ KHUYẾN KHÍCH CHO PRODUCTION)
-# Điều này tối ưu hóa tốc độ load Laravel
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
 
 # Mở cổng web mặc định của Apache
 EXPOSE 80
-CMD /bin/sh -c "php artisan migrate --force && apache2-foreground"
+# Chạy Migration, sau đó Cache các file cấu hình/route, và cuối cùng khởi động Apache.
+CMD /bin/sh -c "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && apache2-foreground"
 # Chạy server
 CMD ["apache2-foreground"]
