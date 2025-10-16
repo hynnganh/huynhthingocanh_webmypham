@@ -37,6 +37,12 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # RUN php artisan config:cache
 # RUN php artisan view:cache
 # Mở cổng web mặc định của Apache
+# Mở cổng web mặc định của Apache
 EXPOSE 80
-# Chạy server
+
+# Render sẽ set PORT động, nên mình cập nhật lại cấu hình Apache
+ENV PORT=80
+RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
+
+# Chạy Apache
 CMD ["apache2-foreground"]
