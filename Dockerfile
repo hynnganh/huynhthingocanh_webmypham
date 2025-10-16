@@ -47,9 +47,9 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # CHẠY CÁC LỆNH CACHE CUỐI CÙNG (CỰC KỲ KHUYẾN KHÍCH CHO PRODUCTION)
 # Điều này tối ưu hóa tốc độ load Laravel
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
+# RUN php artisan config:cache
+# RUN php artisan route:cache
+# RUN php artisan view:cache
 
 # Mở cổng web mặc định của Apache
 EXPOSE 80
