@@ -1,41 +1,40 @@
+# Dùng base image chính thức của PHP với Apache
 FROM php:8.2-apache
-
+# CÀI ĐẶT DRIVER MYSQL BỊ THIẾU
+# Cần gói libzip-dev, libicu-dev và các gói khác cho các extension nếu cần
 RUN apt-get update && \
-    apt-get install -y libzip-dev libicu-dev git curl unzip && \
+    apt-get install -y libzip-dev libicu-dev && \
     docker-php-ext-install pdo_mysql opcache intl zip && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
+    rm -rf /var/lib/apt/lists/*
+# Cài đặt các dependencies cần thiết (zip, git, curl)
+# LƯU Ý: Những gói này đã có hoặc đã được cài trong bước trên (apt-get install)
+RUN apt-get update && \
+    apt-get install -y git curl && \
+    rm -rf /var/lib/apt/lists/*
+# Cài Composer toàn cục
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-RUN a2enmod rewrite && \
-    sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
-
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
+# Bật module rewrite cho Laravel route
+RUN a2enmod rewrite
+# Đặt thư mục làm việc mặc định
 WORKDIR /var/www/html
-
-COPY .env.example .env
-
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/apache2.conf
-
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
-
+# Copy toàn bộ code dự án vào
 COPY . .
+# Cài các thư viện của Laravel
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
+# Chuyển root Apache tới thư mục public của Laravel
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# CẤP QUYỀN GHI: Cực kỳ quan trọng cho Laravel
+# Apache user/group là www-data
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Cấu hình cache cho Production (tùy chọn)
+# RUN php artisan config:cache
+# RUN php artisan view:cache
 
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chown -R www-data:www-data /var/www/html && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Mở cổng web mặc định của Apache
+EXPOSE 8080
+CMD ["php", "-S", "0.0.0.0:8080", "-t","public"]
 
-ENV PORT=10000
-EXPOSE 10000
-
-CMD ["sh", "-c", "\
-    sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && \
-    php artisan key:generate --force || true && \
-    php artisan config:cache --env=production || true && \
-    php artisan route:cache --env=production || true && \
-    php artisan view:cache --env=production || true && \
-    apache2-foreground \
-"]
+# Chạy server
+CMD ["apache2-foreground"]
