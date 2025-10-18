@@ -38,4 +38,7 @@ RUN sed -i "s|<VirtualHost \*:80>|<VirtualHost *:${PORT}>|g" /etc/apache2/sites-
 EXPOSE ${PORT}
 
 # Chạy Apache
-CMD ["apache2-foreground"]
+CMD /bin/sh -c "php artisan config:cache || true && \
+               php artisan route:cache || true && \
+               php artisan view:cache || true && \
+               apache2-foreground"
