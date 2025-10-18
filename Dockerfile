@@ -14,7 +14,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
 
-COPY .env .env
+COPY .env.example .env
 
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/apache2.conf
