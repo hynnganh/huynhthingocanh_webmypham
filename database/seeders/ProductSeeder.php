@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
@@ -13,22 +13,21 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        //Tạo 10 mẫu tin - Chú ý phải dự vào cấu trúc bảng
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 1000; $i++) {
             DB::table('product')->insert([
-                'category_id' => 1,
-                'brand_id' => 1,
-                'name' => 'Tên sản phẩm 1 ' . $i,
-                'slug' => 'ten-san-pham-1 ' . $i,
-                'price_root' => 29000 + ($i * 10),
-                'price_sale' => 19000 + ($i * 10),
+                'category_id' => rand(1, 5), // ngẫu nhiên giữa 5 danh mục
+                'brand_id' => rand(1, 5),    // ngẫu nhiên giữa 5 thương hiệu
+                'name' => 'Sản phẩm mẫu ' . $i,
+                'slug' => Str::slug('Sản phẩm mẫu ' . $i),
+                'price_root' => 50000 + ($i * 10),
+                'price_sale' => 40000 + ($i * 10),
                 'thumbnail' => 'san-pham-' . $i . '.webp',
-                'qty' => 10 + $i,
-                'detail' => 'Chi tếit',
-                'description' => 'Mô tả sản phẩm',
+                'qty' => rand(10, 200),
+                'detail' => 'Chi tiết sản phẩm mẫu số ' . $i,
+                'description' => 'Mô tả sản phẩm mẫu số ' . $i,
                 'created_by' => 1,
-                'created_at' => date('Y-m-d H:i:s'),
-                'status' => 1
+                'created_at' => now(),
+                'status' => 1,
             ]);
         }
     }
