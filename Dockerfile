@@ -1,54 +1,37 @@
 # Dùng base image chính thức của PHP với Apache
 FROM php:8.2-apache
-
-# Install system deps, PHP extensions, Composer and Node (for building assets)
+# CÀI ĐẶT DRIVER MYSQL BỊ THIẾU
+# Cần gói libzip-dev, libicu-dev và các gói khác cho các extension nếu cần
 RUN apt-get update && \
-    apt-get install -y ca-certificates gnupg lsb-release git curl unzip build-essential && \
-    # Install lib dependencies for PHP extensions
     apt-get install -y libzip-dev libicu-dev && \
     docker-php-ext-install pdo_mysql opcache intl zip && \
-    # Install Node.js 18 from NodeSource (needed for npm / vite builds)
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    # Clean up apt caches
     rm -rf /var/lib/apt/lists/*
-
-# Install Composer globally
+# Cài đặt các dependencies cần thiết (zip, git, curl)
+# LƯU Ý: Những gói này đã có hoặc đã được cài trong bước trên (apt-get install)
+RUN apt-get update && \
+    apt-get install -y git curl && \
+    rm -rf /var/lib/apt/lists/*
+# Cài Composer toàn cục
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Enable Apache rewrite and allow .htaccess
-RUN a2enmod rewrite && \
-    sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf && \
-    echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
+# Bật module rewrite cho Laravel route
+RUN a2enmod rewrite
+# Đặt thư mục làm việc mặc định
 WORKDIR /var/www/html
-
-# Copy composer files first to leverage Docker layer cache
-COPY composer.json composer.lock ./
-# Install PHP dependencies (no-dev for production). Keep --no-interaction for CI builds.
-RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
-
-# Copy package files and build frontend assets if present
-COPY package.json package-lock.json* ./
-RUN if [ -f package.json ]; then npm ci && npm run build; fi
-
-# Copy the rest of application code
+# Copy toàn bộ code dự án vào
 COPY . .
-
-# Set Apache document root to Laravel public directory via env
+# Cài các thư viện của Laravel
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
+# Chuyển root Apache tới thư mục public của Laravel
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-# The actual Listen port will be configured at container start using the entrypoint script
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.confa
+# CẤP QUYỀN GHI: Cực kỳ quan trọng cho Laravel
+# Apache user/group là www-data
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Cấu hình cache cho Production (tùy chọn)
+RUN php artisan config:cache
+RUN php artisan view:cache
 
-# Ensure correct permissions for storage and cache
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
-
-# Expose a port (Render sets $PORT; 10000 is commonly used but the container will adapt at runtime)
+# Mở cổng web mặc định của Apache
 EXPOSE 10000
-
-# Add a small entrypoint which will replace Apache Listen/VHost ports with $PORT at runtime
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["apache2-foreground"]
+CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
