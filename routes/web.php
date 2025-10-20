@@ -35,7 +35,7 @@ Route::get('/search', [FrontendProductController::class, 'search'])->name('produ
 Route::get('/lien-he', [FrontendContactController::class, 'index'])->name('site.contact');
 Route::post('/lien-he', [FrontendContactController::class, 'store'])->name('site.contact.store');
 
-Route::get('/bai-viet', [FrontendPostController::class, 'index'])->name('post.index');
+Route::get('/bai-viet', [FrontendPostController::class, 'index'])->name('site.post.index');
 Route::get('/bai-viet/{post}', [FrontendPostController::class, 'show'])->name('site.post.show');
 
 Route::get('/danh-muc/{slug}', [FrontendCategoryController::class, 'showCategory'])->name('site.category.show');
