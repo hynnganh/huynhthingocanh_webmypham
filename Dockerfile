@@ -33,8 +33,5 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # RUN php artisan view:cache
 
 # Mở cổng web mặc định của Apache
-EXPOSE 8080
-CMD ["php", "-S", "0.0.0.0:8080", "-t","public"]
-
-# Chạy server
-CMD ["apache2-foreground"]
+EXPOSE 10000
+CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
