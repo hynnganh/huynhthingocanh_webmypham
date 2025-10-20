@@ -34,12 +34,15 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # --- Mở cổng ---
-EXPOSE 10000
+EXPOSE 8080
 
-# --- Khi container khởi động (Render runtime), mới cache config và view ---
+# --- Chạy cache + khởi động Apache ---
 CMD php artisan config:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:clear && \
     php artisan view:cache && \
+    # Sử dụng port mà Render cấp tự động
+    sed -i "s/Listen 80/Listen ${PORT:-8080}/" /etc/apache2/ports.conf && \
+    sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT:-8080}>/" /etc/apache2/sites-available/000-default.conf && \
     apache2-foreground
