@@ -159,17 +159,58 @@
     </div>
 </header>
 
-<!-- Thanh menu -->
-<nav class="bg-[#F7A7C1] shadow-inner sticky top-[65px] z-40"> <!-- top giảm để sát hơn -->
-    <div class="container mx-auto px-4">
-        <div class="mainmenu w-full text-center font-bold">
-            <ul class="flex flex-wrap justify-center space-x-1 py-1.5"> <!-- Giảm py -->
+<nav x-data="{ open: false }" class="bg-white shadow-lg sticky top-0 z-50">
+    <div class="w-full">
+        <div class="flex justify-between items-center w-full max-w-6xl mx-auto py-3 px-4 sm:px-6 lg:px-8">
+
+            <div class="text-2xl font-extrabold text-[#D946EF] cursor-pointer">
+                MyShop
+            </div>
+
+            <button @click="open = !open" class="sm:hidden text-gray-800 focus:outline-none z-50 relative p-2 rounded-md hover:bg-gray-100 transition-colors">
+                <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="hidden sm:flex items-center space-x-6 font-semibold text-gray-700">
                 <x-main-menu />
+            </div>
+        </div>
+
+        <div
+            x-show="open"
+            x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            {{-- Đã thay đổi: cố định ngay dưới thanh nav, không phải full inset --}}
+            class="absolute top-full left-0 w-full bg-white shadow-xl flex flex-col items-center py-4 sm:hidden z-40 border-t border-gray-200"
+            @click.away="open = false" {{-- Đóng menu khi click ra ngoài --}}
+        >
+            <ul class="flex flex-col items-center space-y-4 font-medium text-gray-700 w-full px-4">
+                {{-- Component menu của bạn --}}
+                <x-main-menu class="!flex-col !space-x-0 !space-y-2 w-full text-center" /> 
+                
+                {{-- Thêm nút đăng nhập cho mobile --}}
+                <a href="/login" class="w-full text-center px-4 py-2 bg-[#D946EF] text-white rounded-lg hover:bg-[#C026D3] transition-colors shadow-md mt-2">
+                    Đăng nhập
+                </a>
             </ul>
         </div>
     </div>
 </nav>
 
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <main>
         {{ $slot }}
@@ -444,7 +485,6 @@ $(function() {
     };
 });
 </script>
-
 
 </body>
 
