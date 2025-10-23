@@ -12,6 +12,8 @@ use App\Models\Brand;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Facades\File;
+use App\ProductImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {

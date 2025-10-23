@@ -223,12 +223,13 @@ public function update(Request $request)
         $file = $request->file('avatar');
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
-        // Lưu file vào thư mục public/assets/images/user
-        $file->move(storage_path('app/public/user'), $filename);
+        // ✅ Lưu trực tiếp vào public/assets/images/user (Render đọc được)
+        $file->move(public_path('assets/images/user'), $filename);
 
         // Xóa avatar cũ nếu có
-        if ($user->avatar && $user->avatar != 'default.png' && file_exists(storage_path('app/public/user/' . $user->avatar))) {
-            unlink(storage_path('app/public/user/' . $user->avatar));
+        $oldPath = public_path('assets/images/user/' . $user->avatar);
+        if ($user->avatar && $user->avatar != 'default.png' && file_exists($oldPath)) {
+            unlink($oldPath);
         }
 
         $user->avatar = $filename;
@@ -236,17 +237,18 @@ public function update(Request $request)
 
     $user->save();
 
-    // Tạo link ảnh đầy đủ cho Render
-    $avatarUrl = config('app.url') . '/assets/images/user/' . $user->avatar;
+    // ✅ URL đúng cho Render
+    $avatarUrl = url('assets/images/user/' . $user->avatar);
 
     return response()->json([
         'success' => true,
         'message' => 'Cập nhật hồ sơ thành công!',
-        'user' => $user->fresh()->toArray(),
+        'user' => $user->fresh(),
         'avatar_path' => $user->avatar,
-        'avatar_url' => $avatarUrl, // ✅ Trả về URL đầy đủ để frontend cập nhật ngay
-    ], 200);
+        'avatar_url' => $avatarUrl,
+    ]);
 }
+
 
 
 }

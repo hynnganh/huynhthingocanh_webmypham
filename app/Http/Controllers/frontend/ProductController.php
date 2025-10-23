@@ -9,8 +9,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\ProductReview;
 use Illuminate\Support\Facades\Auth;
-use App\ProductImport;
-use Maatwebsite\Excel\Facades\Excel;
+
 
 
 class ProductController extends Controller

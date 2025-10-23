@@ -384,6 +384,7 @@
             
             if (data.avatar_path) {
                 const newAvatarUrl = data.avatar_url;
+                document.getElementById("avatarPreview").src = newAvatarUrl;
                 currentAvatarMain.src = newAvatarUrl;
                 currentAvatarModal.src = newAvatarUrl;
             }
