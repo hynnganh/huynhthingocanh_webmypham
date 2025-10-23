@@ -64,7 +64,7 @@
             <!-- Logo -->
             <div class="w-auto">
                 <a href="/" class="flex items-center space-x-2">
-                    <img src="http://localhost/assets/img/logo.jpg" 
+                    <img src="https://webmypham.onrender.com/assets/img/logo.jpg" 
                         alt="Shop Logo"
                         class="w-12 h-12 object-contain rounded-full shadow-md" /> <!-- Giảm w-16 h-16 -->
                     <span class="text-2xl font-extrabold text-[#F7A7C1] hidden sm:block">Bé Ánh</span> <!-- Giảm text-3xl -> text-2xl -->
@@ -220,12 +220,12 @@
                     <h4 class="text-xl font-semibold mb-5 border-b border-[#F7A7C1] pb-2 text-[#F7A7C1]">Thanh toán</h4>
                     <div class="flex justify-start space-x-6">
                         <div class="flex flex-col items-center p-3 bg-white rounded-xl shadow-inner">
-                            <img src="http://localhost/assets/img/momo.jpg"
+                            <img src="https://webmypham.onrender.com/assets/img/momo.jpg"
                                 alt="MoMo QR Code" class="w-28 h-28 object-cover rounded-lg shadow-md mb-2 border border-gray-200" />
                             <span class="text-sm font-semibold text-gray-700">MoMo</span>
                         </div>
                         <div class="flex flex-col items-center p-3 bg-white rounded-xl shadow-inner">
-                            <img src="http://localhost/assets/img/bidv.jpg"
+                            <img src="https://webmypham.onrender.com/assets/img/bidv.jpg"
                                 alt="BIDV QR Code" class="w-28 h-28 object-cover rounded-lg shadow-md mb-2 border border-gray-200" />
                             <span class="text-sm font-semibold text-gray-700">BIDV</span>
                         </div>

@@ -14,7 +14,7 @@
         <div class="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-2xl space-y-12 px-4">
             
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 border-b border-pink-100 pb-8">
-                
+            
                 {{-- CỘT 1 (lg:col-span-4): Ảnh sản phẩm --}}
                 <div class="lg:col-span-4 flex flex-col items-center">
                     <div class="w-full max-w-sm mx-auto relative overflow-hidden rounded-xl shadow-xl border border-pink-100 p-2 bg-white">
@@ -217,8 +217,97 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
             <div class="pt-8">
-                <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">Đánh Giá Sản Phẩm</h3>
+    <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">
+        Đánh Giá Sản Phẩm
+    </h3>
+
+    {{-- Form Gửi Đánh Giá --}}
+    @auth
+        <form action="{{ route('review.store') }}" method="POST" enctype="multipart/form-data"
+              class="space-y-5 bg-pink-50 p-6 rounded-xl border border-pink-200 shadow-md">
+            @csrf
+            <input type="hidden" name="product_id" value="{{ $product->id }}">
+
+            <div>
+                <label class="font-semibold text-gray-700">Đánh giá của bạn:</label>
+                <select name="rating" class="mt-2 border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400">
+                    <option value="5">5 sao</option>
+                    <option value="4">4 sao</option>
+                    <option value="3">3 sao</option>
+                    <option value="2">2 sao</option>
+                    <option value="1">1 sao</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="font-semibold text-gray-700">Bình luận:</label>
+                <textarea name="comment" rows="3" class="w-full mt-2 border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="font-semibold text-gray-700">Ảnh minh họa (tùy chọn):</label>
+                    <input type="file" name="image" accept="image/*" class="w-full mt-2 border border-pink-300 rounded-lg p-2">
                 </div>
+                <div>
+                    <label class="font-semibold text-gray-700">Video minh họa (tùy chọn):</label>
+                    <input type="file" name="video" accept="video/*" class="w-full mt-2 border border-pink-300 rounded-lg p-2">
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="submit" class="bg-pink-500 text-white font-bold px-6 py-2 rounded-lg hover:bg-pink-600 transition shadow-md">
+                    Gửi đánh giá
+                </button>
+            </div>
+        </form>
+    @else
+        <p class="text-gray-600 italic">Vui lòng <a href="{{ route('login') }}" class="text-pink-500 font-semibold hover:underline">đăng nhập</a> để gửi đánh giá.</p>
+    @endauth
+
+    {{-- Danh sách đánh giá --}}
+    <div class="mt-8 space-y-6">
+        @forelse ($product->reviews as $review)
+            <div class="border border-pink-100 p-4 rounded-lg bg-white shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="font-bold text-gray-800">
+                        {{ $review->user->name ?? 'Người dùng ẩn danh' }}
+                    </div>
+                    <div class="text-yellow-500">
+                        @for ($i = 0; $i < $review->rating; $i++)
+                            ★
+                        @endfor
+                        @for ($i = $review->rating; $i < 5; $i++)
+                            ☆
+                        @endfor
+                    </div>
+                </div>
+
+                <p class="text-gray-700 mt-2">{{ $review->comment }}</p>
+
+                {{-- Ảnh minh họa --}}
+                @if($review->image)
+                    <div class="mt-3">
+                        <img src="{{ asset('storage/' . $review->image) }}" alt="Ảnh đánh giá"
+                             class="rounded-lg border border-pink-200 max-w-[200px]">
+                    </div>
+                @endif
+
+                {{-- Video minh họa --}}
+                @if($review->video)
+                    <div class="mt-3">
+                        <video width="320" controls class="rounded-lg border border-pink-200">
+                            <source src="{{ asset('storage/' . $review->video) }}" type="video/mp4">
+                            Trình duyệt của bạn không hỗ trợ video.
+                        </video>
+                    </div>
+                @endif
+            </div>
+        @empty
+            <p class="text-gray-500 italic">Chưa có đánh giá nào cho sản phẩm này.</p>
+        @endforelse
+    </div>
+</div>
 
         </div>
     </main>

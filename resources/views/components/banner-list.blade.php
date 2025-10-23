@@ -6,10 +6,10 @@
         @endforeach -->
 
         <div class="absolute inset-0 transition-all duration-1000 ease-in-out slide-show opacity-0">
-                <img src="http://localhost/assets/img/banner3.jpg"  class="w-full h-full object-cover" />
+                <img src="https://webmypham.onrender.com/assets/img/banner3.jpg"  class="w-full h-full object-cover" />
             </div>
             <div class="absolute inset-0 transition-all duration-1000 ease-in-out slide-show opacity-0">
-                <img src="http://localhost/assets/img/skc.jpg"  class="w-full h-full object-cover" />
+                <img src="https://webmypham.onrender.com/assets/img/skc.jpg"  class="w-full h-full object-cover" />
             </div>
     <!-- Navigation Arrows -->
     <button id="prev" class="absolute top-1/2 left-4 transform -translate-y-1/2 text-black text-4xl z-10 bg-opacity-50 hover:bg-opacity-80 transition duration-300">
