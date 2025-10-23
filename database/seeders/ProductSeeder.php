@@ -21,7 +21,7 @@ class ProductSeeder extends Seeder
                 'slug' => Str::slug('Sản phẩm mẫu ' . $i),
                 'price_root' => 50000 + ($i * 10),
                 'price_sale' => 40000 + ($i * 10),
-                'thumbnail' => 'san-pham-' . $i . '.webp',
+                'thumbnail' => 'srmhadalabo.jpg',
                 'qty' => rand(10, 200),
                 'detail' => 'Chi tiết sản phẩm mẫu số ' . $i,
                 'description' => 'Mô tả sản phẩm mẫu số ' . $i,

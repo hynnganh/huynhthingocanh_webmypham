@@ -19,6 +19,13 @@
                 class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-150 shadow-md font-semibold">
                 <i class="fa fa-trash-alt mr-1"></i> Thùng rác
             </a>
+            <form action="{{ route('product.import') }}" method="POST" enctype="multipart/form-data" class="inline-block">
+        @csrf
+        <label class="inline-flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-150 shadow-md font-semibold cursor-pointer">
+            <i class="fa fa-file-excel mr-1"></i> Import Excel
+            <input type="file" name="file" accept=".xlsx,.csv" onchange="this.form.submit()" class="hidden">
+        </label>
+    </form>
         </div>
     </div>
 

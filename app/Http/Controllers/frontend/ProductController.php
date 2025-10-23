@@ -9,6 +9,9 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\ProductReview;
 use Illuminate\Support\Facades\Auth;
+use App\ProductImport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class ProductController extends Controller
 {
@@ -122,6 +125,11 @@ class ProductController extends Controller
         return $listid;
     }
 
-    
+    public function import(Request $request)
+{
+    Excel::import(new ProductImport, $request->file('file'));
+    return back()->with('success', 'Nhập sản phẩm thành công!');
+}
+
 
 }

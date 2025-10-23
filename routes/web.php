@@ -127,6 +127,7 @@ Route::prefix('admin')->group(function () {
         Route::get('delete/{product}', [BackendProductController::class, 'delete'])->name('product.delete');
         Route::get('restore/{product}', [BackendProductController::class, 'restore'])->name('product.restore');
         Route::get('status/{product}', [BackendProductController::class, 'status'])->name('product.status');
+        Route::post('/import-product', [BackendProductController::class, 'import'])->name('product.import');
     });
     Route::resource('product', BackendProductController::class);
 
