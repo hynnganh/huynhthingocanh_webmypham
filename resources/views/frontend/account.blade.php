@@ -16,10 +16,11 @@
 
             <div class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
                 <div class="flex-shrink-0 relative group">
-                    <img src="{{ asset('assets/images/user/' . $user->avatar) }}" 
+                    <img src="{{ asset('storage/user/' . $user->avatar) }}" 
                         alt="Avatar" 
                         class="w-32 h-32 rounded-full object-cover border-4 border-pink-400 shadow-lg group-hover:border-pink-600 transition duration-300 transform group-hover:scale-105"
                         id="user-main-avatar">
+
                 </div>
 
                 <div class="text-center md:text-left">
@@ -384,7 +385,6 @@
             
             if (data.avatar_path) {
                 const newAvatarUrl = data.avatar_url;
-                document.getElementById("avatarPreview").src = newAvatarUrl;
                 currentAvatarMain.src = newAvatarUrl;
                 currentAvatarModal.src = newAvatarUrl;
             }

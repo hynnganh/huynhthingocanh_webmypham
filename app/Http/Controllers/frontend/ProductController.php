@@ -9,8 +9,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\ProductReview;
 use Illuminate\Support\Facades\Auth;
-
-
+use Illuminate\Support\Facades\DB; // Thêm DB Facade
 
 class ProductController extends Controller
 {
@@ -18,24 +17,36 @@ class ProductController extends Controller
     {
         $args = [['status', '=', 1]];
         $listCategoryIds = [];
+        
+        // Lấy các tham số filter từ request (có thể là mảng cho Multi-select)
+        $categorySlugs = $request->input('category_slug');
+        $brandSlugs = $request->input('brand_slug');
 
-        // Lọc theo category_slug
-        if ($request->category_slug) {
-            $category = Category::where([['status', '=', 1], ['slug', '=', $request->category_slug]])->first();
-            if ($category) {
-                $listCategoryIds = $this->getListCategory($category->id);
+        // Lọc theo category_slug (Hỗ trợ nhiều slug)
+        if (!empty($categorySlugs)) {
+            $slugs = is_array($categorySlugs) ? $categorySlugs : [$categorySlugs];
+            $selectedCategories = Category::where('status', 1)->whereIn('slug', $slugs)->get();
+            
+            foreach ($selectedCategories as $category) {
+                // Hợp nhất các ID của category được chọn và các category con của chúng
+                $listCategoryIds = array_merge($listCategoryIds, $this->getListCategory($category->id));
             }
-        }
-
-        // Lọc theo brand_slug
-        if ($request->brand_slug) {
-            $brand = Brand::where([['status', '=', 1], ['slug', '=', $request->brand_slug]])->first();
-            if ($brand) {
-                $args[] = ['brand_id', '=', $brand->id];
-            }
+            $listCategoryIds = array_unique($listCategoryIds);
         }
 
         $productQuery = Product::where($args);
+
+        // Lọc theo brand_slug (Hỗ trợ nhiều slug)
+        if (!empty($brandSlugs)) {
+            $slugs = is_array($brandSlugs) ? $brandSlugs : [$brandSlugs];
+            $brandIds = Brand::where('status', 1)->whereIn('slug', $slugs)->pluck('id')->toArray();
+            
+            if (!empty($brandIds)) {
+                $productQuery->whereIn('brand_id', $brandIds);
+            }
+        }
+        
+        // Áp dụng lọc theo danh mục
         if (!empty($listCategoryIds)) {
             $productQuery->whereIn('category_id', $listCategoryIds);
         }
@@ -43,8 +54,8 @@ class ProductController extends Controller
         // Lọc theo giá
         if ($request->filled('min') || $request->filled('max')) {
             $min = max(0, $request->input('min', 0));
-            $max = $request->input('max', 1000000000);
-            $productQuery->whereBetween('price_sale', [$min, $max]);
+            $max = $request->input('max', 1000000000); 
+            $productQuery->whereBetween('price_sale', [(int)$min, (int)$max]);
         }
 
         // Sắp xếp
@@ -53,31 +64,36 @@ class ProductController extends Controller
         elseif ($sort == 'desc') $productQuery->orderBy('price_sale', 'desc');
         else $productQuery->orderBy('created_at', 'desc');
 
-        $product_list = $productQuery->paginate(6)->withQueryString();
+        // 🔥🔥🔥 SỬA ĐỔI ĐỂ PHÂN TRANG 50 SẢN PHẨM MỖI TRANG 🔥🔥🔥
+        $product_list = $productQuery->paginate(50)->withQueryString(); 
+
         $category_list = Category::where('status', 1)->get();
         $brand_list = Brand::where('status', 1)->get();
 
         return view('frontend.product', compact('product_list', 'category_list', 'brand_list'));
     }
 
-     public function search(Request $request)
+    // Hàm search
+    public function search(Request $request)
     {
         $query = $request->input('query');
 
         if ($query) {
-            $products = Product::where(function($queryBuilder) use ($query) {
-                $queryBuilder->where('name', 'like', '%' . $query . '%')
-                             ->orWhere('description', 'like', '%' . $query . '%');
-            });
+            $products = Product::where('status', 1) 
+                ->where(function($queryBuilder) use ($query) {
+                    $queryBuilder->where('name', 'like', '%' . $query . '%')
+                                 ->orWhere('description', 'like', '%' . $query . '%');
+                })
+                ->paginate(50); // Phân trang 50 kết quả tìm kiếm
 
-            $products = $products->get();
         } else {
-            $products = Product::all();
+            $products = Product::where('status', 1)->paginate(50);
         }
         
         return view('frontend.search', compact('products', 'query'));
     }
 
+    // Hàm detail
     public function detail($slug)
     {
         $product = Product::where([['status', '=', 1], ['slug', '=', $slug]])->first();
@@ -88,28 +104,27 @@ class ProductController extends Controller
             ->whereIn('category_id', $listCategoryIds)
             ->where('id', '!=', $product->id)
             ->orderBy('created_at', 'desc')
-            ->limit(6)
+            ->limit(50) 
             ->get();
 
-        // Lấy đánh giá
         $reviews = $product->reviews()->latest()->get();
         $averageRating = $product->reviews()->avg('rating');
 
-        // Kiểm tra user có được đánh giá hay không
         $canReview = false;
         $user = Auth::user();
         if ($user) {
-            $canReview = \DB::table('order')
+            $canReview = DB::table('order')
                 ->join('orderdetail', 'order.id', '=', 'orderdetail.order_id')
                 ->where('order.user_id', $user->id)
                 ->where('orderdetail.product_id', $product->id)
-                ->where('order.status', 5) // chỉ khi đơn hàng đã giao thành công
+                ->where('order.status', 5) 
                 ->exists();
         }
 
         return view('frontend.product-detail', compact('product', 'product_list', 'reviews', 'averageRating', 'canReview'));
     }
 
+    // Hàm đệ quy lấy danh sách category con
     private function getListCategory($categoryId)
     {
         $listid = [$categoryId];
@@ -123,6 +138,4 @@ class ProductController extends Controller
         $getChildren($categoryId);
         return $listid;
     }
-
-
 }
