@@ -42,11 +42,6 @@
                             3 => 'Đang chuẩn bị hàng',
                             4 => 'Đang giao hàng',
                             5 => 'Giao thành công',
-                            6 => 'Đã hủy',
-                            7 => 'Hoàn trả',
-                            8 => 'Đổi hàng',
-                            9 => 'Từ chối',
-                            10 => 'Khác'
                         ] as $value => $label)
                             <option value="{{ $value }}" {{ $order->status == $value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach

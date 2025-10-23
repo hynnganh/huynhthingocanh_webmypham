@@ -224,7 +224,7 @@ public function update(Request $request)
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Lưu file vào thư mục public/assets/images/user
-        $file->move(storage_path('app/public/user'), $filename);
+        $file->move(public_path('assets/images/user'), $filename);
 
         // Xóa avatar cũ nếu có
         if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {

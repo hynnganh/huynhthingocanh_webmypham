@@ -104,7 +104,7 @@ class ProductController extends Controller
             ->whereIn('category_id', $listCategoryIds)
             ->where('id', '!=', $product->id)
             ->orderBy('created_at', 'desc')
-            ->limit(50) 
+            ->limit(4) 
             ->get();
 
         $reviews = $product->reviews()->latest()->get();

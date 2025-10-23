@@ -85,11 +85,6 @@
                                             3 => 'bg-orange-100 text-orange-800 border-orange-300',
                                             4 => 'bg-green-100 text-green-800 border-green-300',
                                             5 => 'bg-teal-100 text-teal-800 border-teal-300',
-                                            6 => 'bg-red-100 text-red-800 border-red-300',
-                                            7 => 'bg-purple-100 text-purple-800 border-purple-300',
-                                            8 => 'bg-indigo-100 text-indigo-800 border-indigo-300',
-                                            9 => 'bg-gray-100 text-gray-800 border-gray-300',
-                                            10 => 'bg-pink-100 text-pink-800 border-pink-300',
                                         ][$order->status] ?? 'bg-gray-100 text-gray-600 border-gray-300';
 
                                         $status_text = [
