@@ -358,77 +358,49 @@
                 });
             }
 
-            function showToast(message, type = 'success') {
-                const toast = document.getElementById('toast-notification');
-                const toastMessage = document.getElementById('toast-message');
-                const toastIcon = document.getElementById('toast-icon');
 
-                toastMessage.textContent = message;
-                
-                if (type === 'success') {
-                    toast.className = 'fixed top-5 right-5 z-[500] p-4 rounded-lg shadow-xl text-white transition-all duration-300 bg-green-500';
-                    toastIcon.className = 'fas fa-check-circle mr-2';
-                } else if (type === 'error') {
-                    toast.className = 'fixed top-5 right-5 z-[500] p-4 rounded-lg shadow-xl text-white transition-all duration-300 bg-red-500';
-                    toastIcon.className = 'fas fa-times-circle mr-2';
-                } else {
-                    toast.className = 'fixed top-5 right-5 z-[500] p-4 rounded-lg shadow-xl text-white transition-all duration-300 bg-gray-500';
-                    toastIcon.className = 'fas fa-info-circle mr-2';
-                }
-
-                setTimeout(() => {
-                    toast.classList.add('show');
-                }, 50);
-
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
+           profileEditForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            document.getElementById('user-main-name').textContent = data.user.name;
+            document.getElementById('user-detail-phone').textContent = data.user.phone || 'Chưa cập nhật';
+            document.getElementById('user-detail-address').textContent = data.user.address || 'Chưa cập nhật';
+            
+            if (data.avatar_path) {
+                const newAvatarUrl = data.avatar_url;
+                currentAvatarMain.src = newAvatarUrl;
+                currentAvatarModal.src = newAvatarUrl;
             }
 
-            profileEditForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('HTTP status ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('user-main-name').textContent = data.user.name;
-                        document.getElementById('user-detail-phone').textContent = data.user.phone || 'Chưa cập nhật';
-                        document.getElementById('user-detail-address').textContent = data.user.address || 'Chưa cập nhật';
-                        
-                        if (data.avatar_path) {
-                            const newAvatarUrl = '{{ asset("assets/images/user/") }}' + '/' + data.avatar_path;
-                            currentAvatarMain.src = newAvatarUrl;
-                            currentAvatarModal.src = newAvatarUrl;
-                        }
+            hideEditModal();
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            console.warn('Cập nhật thất bại:', data.message || 'Không rõ lỗi');
+        }
+    })
+    .catch(error => {
+        console.error('Lỗi kết nối server:', error);
+    });
+});
 
-                        hideEditModal();
-                        showToast('Cập nhật hồ sơ thành công!', 'success');
-                        
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        showToast(data.message || 'Lỗi: Không thể cập nhật hồ sơ.', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Lỗi kết nối server:', error);
-                    showToast('Đã xảy ra lỗi hệ thống. Vui lòng kiểm tra console.', 'error');
-                });
-            });
         });
     </script>
 </x-layout-site>

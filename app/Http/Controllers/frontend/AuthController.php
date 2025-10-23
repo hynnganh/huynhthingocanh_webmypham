@@ -221,10 +221,12 @@ public function update(Request $request)
     // Upload avatar
     if ($request->hasFile('avatar')) {
         $file = $request->file('avatar');
-        
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+        // Lưu file vào thư mục public/assets/images/user
         $file->move(public_path('assets/images/user'), $filename);
 
+        // Xóa avatar cũ nếu có
         if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
             unlink(public_path('assets/images/user/' . $user->avatar));
         }
@@ -233,16 +235,18 @@ public function update(Request $request)
     }
 
     $user->save();
+
+    // Tạo link ảnh đầy đủ cho Render
+    $avatarUrl = config('app.url') . '/assets/images/user/' . $user->avatar;
+
     return response()->json([
         'success' => true,
         'message' => 'Cập nhật hồ sơ thành công!',
         'user' => $user->fresh()->toArray(),
-        'avatar_path' => $user->avatar, 
+        'avatar_path' => $user->avatar,
+        'avatar_url' => $avatarUrl, // ✅ Trả về URL đầy đủ để frontend cập nhật ngay
     ], 200);
-
-
-    return redirect()->route('update')->with('success', 'Cập nhập tài khoản thành công');
-
 }
+
 
 }
