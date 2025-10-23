@@ -200,4 +200,10 @@ public function delete($id)
 
         return redirect()->route('inventory.index')->with('success', "Cập nhật tồn kho sản phẩm '{$product->name}' thành công!");
     }
+
+     public function import(Request $request)
+{
+    Excel::import(new ProductImport, $request->file('file'));
+    return back()->with('success', 'Nhập sản phẩm thành công!');
+}
 }

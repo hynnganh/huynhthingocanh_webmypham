@@ -224,11 +224,11 @@ public function update(Request $request)
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Lưu file vào thư mục public/assets/images/user
-        $file->move(public_path('assets/images/user'), $filename);
+        $file->move(storage_path('app/public/user'), $filename);
 
         // Xóa avatar cũ nếu có
-        if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
-            unlink(public_path('assets/images/user/' . $user->avatar));
+        if ($user->avatar && $user->avatar != 'default.png' && file_exists(storage_path('app/public/user/' . $user->avatar))) {
+            unlink(storage_path('app/public/user/' . $user->avatar));
         }
 
         $user->avatar = $filename;
