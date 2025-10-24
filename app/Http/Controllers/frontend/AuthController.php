@@ -229,40 +229,43 @@ public function update(Request $request)
         'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
     ]);
 
-    $user->name = $request->name;
-    $user->phone = $request->phone;
-    $user->address = $request->address;
+    $user->fill($request->only(['name', 'phone', 'address']));
     if ($request->filled('username')) {
         $user->username = $request->username;
     }
 
-    // ✅ Upload avatar lên Cloudinary
+    // ✅ Upload avatar mới lên Cloudinary nếu có
     if ($request->hasFile('avatar')) {
-        // Xóa avatar cũ trên Cloudinary nếu có (nếu em muốn)
-        if ($user->avatar && !str_contains($user->avatar, 'default.png')) {
-            try {
-                $publicId = pathinfo($user->avatar, PATHINFO_FILENAME);
-                Cloudinary::destroy($publicId);
-            } catch (\Exception $e) {}
+        try {
+            if ($user->avatar && Str::startsWith($user->avatar, 'https://res.cloudinary.com')) {
+                $publicId = pathinfo(parse_url($user->avatar, PHP_URL_PATH), PATHINFO_FILENAME);
+                Cloudinary::destroy('user_avatar/' . $publicId);
+            }
+        } catch (\Exception $e) {
+            // ignore lỗi xóa ảnh cũ
         }
 
-        // Upload ảnh mới
         $upload = Cloudinary::upload($request->file('avatar')->getRealPath(), [
-            'folder' => 'user_avatar', // ảnh user nằm trong folder này
+            'folder' => 'user_avatar',
             'public_id' => Str::slug($user->username ?? 'user') . '-' . time(),
         ]);
 
-        $user->avatar = $upload->getSecurePath(); // Lưu link full URL ảnh
+        $user->avatar = $upload->getSecurePath();
     }
 
     $user->save();
+
+    // ✅ Tự động chuẩn hóa URL trả về (dù local hay Cloudinary)
+    $avatarUrl = Str::startsWith($user->avatar, ['http', 'https'])
+        ? $user->avatar
+        : asset('storage/user/' . ltrim($user->avatar ?? 'default.png', '/'));
 
     return response()->json([
         'success' => true,
         'message' => 'Cập nhật hồ sơ thành công!',
         'user' => $user->fresh(),
-        'avatar_url' => $user->avatar, // ✅ Cloudinary trả sẵn URL
-    ], 200);
+        'avatar_url' => $avatarUrl,
+    ]);
 }
 
 
