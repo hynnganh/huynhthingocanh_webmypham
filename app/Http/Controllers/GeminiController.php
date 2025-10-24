@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class GeminiController extends Controller
 {
-    // 🧠 Load trang chat + lịch sử
+    // 🧠 Trang chat AI
     public function index()
     {
         $history = session('history', []);
@@ -23,7 +23,7 @@ class GeminiController extends Controller
         return view('frontend.gemini.result', compact('history'));
     }
 
-    // 💬 Xử lý khi người dùng gửi prompt
+    // 💬 Xử lý khi người dùng gửi tin nhắn
     public function ask(Request $request)
     {
         $request->validate(['prompt' => 'required|string']);
@@ -33,45 +33,46 @@ class GeminiController extends Controller
         $history = session('history', []);
         $history[] = ['role' => 'user', 'content' => $prompt];
 
-        // 🔎 1️⃣ Kiểm tra xem người dùng có muốn so sánh giá không
+        // ⚖️ 1️⃣ So sánh giá
         if (Str::contains($lowerPrompt, ['so sánh', 'so sanh', 'rẻ hơn', 'đắt hơn'])) {
             return $this->comparePrice($lowerPrompt, $history);
         }
 
-        // 🔎 2️⃣ Tìm sản phẩm như cũ
+        // 💸 2️⃣ Tìm sản phẩm rẻ nhất / đắt nhất
+        if (Str::contains($lowerPrompt, ['rẻ nhất', 'đắt nhất', 'cao nhất', 'thấp nhất'])) {
+            return $this->findCheapestAndMostExpensive($lowerPrompt, $history);
+        }
+
+        // 🔍 3️⃣ Tìm sản phẩm theo từ khóa (trong name và detail)
         $products = Product::whereRaw('LOWER(name) LIKE ?', ['%' . $lowerPrompt . '%'])
-            ->orWhereRaw('LOWER(description) LIKE ?', ['%' . $lowerPrompt . '%'])
+            ->orWhereRaw('LOWER(detail) LIKE ?', ['%' . $lowerPrompt . '%'])
             ->get();
 
-        // Nếu không tìm thấy, tìm theo từng từ khóa
+        // Nếu không tìm thấy → tìm theo từng từ
         if ($products->isEmpty()) {
             $keywords = explode(' ', $lowerPrompt);
             $queryBuilder = Product::query();
             foreach ($keywords as $word) {
                 $queryBuilder->orWhereRaw('LOWER(name) LIKE ?', ['%' . $word . '%'])
-                    ->orWhereRaw('LOWER(description) LIKE ?', ['%' . $word . '%']);
+                    ->orWhereRaw('LOWER(detail) LIKE ?', ['%' . $word . '%']);
             }
             $products = $queryBuilder->limit(5)->get();
         }
 
-        // Nếu vẫn không có sản phẩm
+        // Nếu vẫn không có
         if ($products->isEmpty()) {
             $answerText = "Xin lỗi 😢, mình không tìm thấy sản phẩm nào phù hợp.";
             $history[] = ['role' => 'ai', 'content' => $answerText];
             session(['history' => $history]);
-
-            return response()->json([
-                'products' => [],
-                'answer' => $answerText
-            ]);
+            return response()->json(['products' => [], 'answer' => $answerText]);
         }
 
-        // Nếu có kết quả
+        // ✅ Nếu có kết quả
         $answerText = "Mình đã tìm thấy " . $products->count() . " sản phẩm phù hợp ✨";
         $productsData = $products->map(function ($p) {
             return [
                 'name' => $p->name,
-                'description' => $p->description,
+                'detail' => $p->detail,
                 'price' => $p->price_sale,
                 'image' => $p->thumbnail ? asset('assets/images/product/' . $p->thumbnail) : '',
                 'detail_url' => route('site.product-detail', $p->slug),
@@ -88,12 +89,11 @@ class GeminiController extends Controller
         ]);
     }
 
-    // ⚖️ Hàm riêng xử lý so sánh giá
+    // ⚖️ So sánh giá giữa nhiều sản phẩm
     private function comparePrice($prompt, &$history)
     {
-        // Tách tên sản phẩm từ prompt
-        preg_match_all('/so sánh|so sanh|rẻ hơn|đắt hơn|(\w+(?:\s+\w+){0,3})/', $prompt, $matches);
-        $words = collect($matches[1])->filter()->values();
+        preg_match_all('/([\p{L}\p{N}\s]+)/u', $prompt, $matches);
+        $words = collect($matches[1])->filter(fn($w) => strlen(trim($w)) > 2)->values();
 
         if ($words->count() < 2) {
             $answer = "Hãy nhập tên của ít nhất hai sản phẩm để mình so sánh giá nha 💬";
@@ -102,7 +102,6 @@ class GeminiController extends Controller
             return response()->json(['answer' => $answer]);
         }
 
-        // Tìm sản phẩm khớp
         $products = Product::where(function ($query) use ($words) {
             foreach ($words as $word) {
                 $query->orWhere('name', 'like', '%' . trim($word) . '%');
@@ -110,13 +109,12 @@ class GeminiController extends Controller
         })->get();
 
         if ($products->count() < 2) {
-            $answer = "Mình chỉ tìm thấy " . $products->count() . " sản phẩm thôi 😅. Hãy thử nhập tên đầy đủ hơn nha.";
+            $answer = "Mình chỉ tìm thấy " . $products->count() . " sản phẩm thôi 😅. Hãy thử nhập rõ hơn nha.";
             $history[] = ['role' => 'ai', 'content' => $answer];
             session(['history' => $history]);
             return response()->json(['answer' => $answer]);
         }
 
-        // Sắp xếp theo giá
         $sorted = $products->sortBy('price_sale')->values();
         $cheapest = $sorted->first();
         $mostExpensive = $sorted->last();
@@ -125,8 +123,31 @@ class GeminiController extends Controller
         foreach ($products as $p) {
             $answer .= "• {$p->name}: " . number_format($p->price_sale, 0, ',', '.') . "₫\n";
         }
-        $answer .= "\n👉 Sản phẩm **rẻ nhất** là **{$cheapest->name}**, giá " . number_format($cheapest->price_sale, 0, ',', '.') . "₫.";
-        $answer .= "\n👉 Sản phẩm **đắt nhất** là **{$mostExpensive->name}**, giá " . number_format($mostExpensive->price_sale, 0, ',', '.') . "₫.";
+        $answer .= "\n👉 **Rẻ nhất:** {$cheapest->name} — " . number_format($cheapest->price_sale, 0, ',', '.') . "₫";
+        $answer .= "\n👉 **Đắt nhất:** {$mostExpensive->name} — " . number_format($mostExpensive->price_sale, 0, ',', '.') . "₫";
+
+        $history[] = ['role' => 'ai', 'content' => nl2br($answer)];
+        session(['history' => $history]);
+
+        return response()->json(['answer' => nl2br($answer)]);
+    }
+
+    // 💸 Tìm sản phẩm rẻ nhất / đắt nhất toàn site
+    private function findCheapestAndMostExpensive($prompt, &$history)
+    {
+        $cheapest = Product::orderBy('price_sale', 'asc')->first();
+        $mostExpensive = Product::orderBy('price_sale', 'desc')->first();
+
+        if (!$cheapest || !$mostExpensive) {
+            $answer = "Hiện tại chưa có dữ liệu sản phẩm để so sánh 😅";
+            $history[] = ['role' => 'ai', 'content' => $answer];
+            session(['history' => $history]);
+            return response()->json(['answer' => $answer]);
+        }
+
+        $answer = "📊 Kết quả tìm thấy:\n";
+        $answer .= "\n💰 **Sản phẩm rẻ nhất:** {$cheapest->name} — " . number_format($cheapest->price_sale, 0, ',', '.') . "₫";
+        $answer .= "\n👑 **Sản phẩm đắt nhất:** {$mostExpensive->name} — " . number_format($mostExpensive->price_sale, 0, ',', '.') . "₫";
 
         $history[] = ['role' => 'ai', 'content' => nl2br($answer)];
         session(['history' => $history]);
