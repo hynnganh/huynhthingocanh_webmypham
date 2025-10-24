@@ -12,6 +12,7 @@ use App\Models\OrderDetail;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use App\Http\Requests\RegisterUserRequest;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class AuthController extends Controller
 {
