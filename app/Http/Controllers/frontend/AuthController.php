@@ -44,32 +44,48 @@ class AuthController extends Controller
 
     // Xử lý đăng ký
     public function register(RegisterUserRequest $request)
-    {
-        $user = new User();
-        $user->name = $request->name;
-        $user->phone = $request->phone;
-        $user->email = $request->email;
-        $user->address = $request->address;
-        $user->username = $request->username;
-        $user->roles = 'customer';
-        $user->password = Hash::make($request->password);
+{
+    $user = new User();
+    $user->name = $request->name;
+    $user->phone = $request->phone;
+    $user->email = $request->email;
+    $user->address = $request->address;
+    $user->username = $request->username;
+    $user->roles = 'customer';
+    $user->password = Hash::make($request->password);
 
-        if ($request->hasFile('avatar')) {
-            $file = $request->file('avatar');
-            $filename = Str::slug($request->username) . '-' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('assets/images/user'), $filename);
-            $user->avatar = $filename;
-        } else {
-            $user->avatar = 'default.png';
+    // ✅ Xử lý upload avatar an toàn
+    if ($request->hasFile('avatar')) {
+        $file = $request->file('avatar');
+        $filename = Str::slug($request->username) . '-' . time() . '.' . $file->getClientOriginalExtension();
+
+        // Kiểm tra và tạo thư mục nếu chưa có
+        $path = public_path('assets/images/user');
+        if (!file_exists($path)) {
+            mkdir($path, 0775, true);
         }
 
-        $user->created_by = Auth::id() ?? 1;
-        $user->status = 1;
-        $user->save();
-
-        Auth::login($user);
-        return redirect()->route('login')->with('success', 'Đăng ký thành công');
+        // Thử di chuyển file, bắt lỗi nếu có
+        try {
+            $file->move($path, $filename);
+            $user->avatar = $filename;
+        } catch (\Exception $e) {
+            // Nếu lỗi quyền ghi hoặc lỗi khác, dùng ảnh mặc định
+            $user->avatar = 'default.png';
+        }
+    } else {
+        $user->avatar = 'default.png';
     }
+
+    $user->created_by = Auth::id() ?? 1;
+    $user->status = 1;
+    $user->save();
+
+    Auth::login($user);
+
+    return redirect()->route('login')->with('success', 'Đăng ký thành công');
+}
+
 
     // Trang account + liệt kê đơn hàng
     public function account()
