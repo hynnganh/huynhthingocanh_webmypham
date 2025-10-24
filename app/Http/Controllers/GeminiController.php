@@ -46,6 +46,7 @@ class GeminiController extends Controller
         // 🔍 3️⃣ Tìm sản phẩm theo từ khóa (trong name và detail)
         $products = Product::whereRaw('LOWER(name) LIKE ?', ['%' . $lowerPrompt . '%'])
             ->orWhereRaw('LOWER(detail) LIKE ?', ['%' . $lowerPrompt . '%'])
+            ->limit(5)
             ->get();
 
         // Nếu không tìm thấy → tìm theo từng từ
@@ -54,7 +55,7 @@ class GeminiController extends Controller
             $queryBuilder = Product::query();
             foreach ($keywords as $word) {
                 $queryBuilder->orWhereRaw('LOWER(name) LIKE ?', ['%' . $word . '%'])
-                    ->orWhereRaw('LOWER(detail) LIKE ?', ['%' . $word . '%']);
+                             ->orWhereRaw('LOWER(detail) LIKE ?', ['%' . $word . '%']);
             }
             $products = $queryBuilder->limit(5)->get();
         }
@@ -69,16 +70,7 @@ class GeminiController extends Controller
 
         // ✅ Nếu có kết quả
         $answerText = "Mình đã tìm thấy " . $products->count() . " sản phẩm phù hợp ✨";
-        $productsData = $products->map(function ($p) {
-            return [
-                'name' => $p->name,
-                'detail' => $p->detail,
-                'price' => $p->price_sale,
-                'image' => $p->thumbnail ? asset('assets/images/product/' . $p->thumbnail) : '',
-                'detail_url' => route('site.product-detail', $p->slug),
-                'buy_url' => route('cart.add', ['id' => $p->id])
-            ];
-        });
+        $productsData = $this->formatProducts($products);
 
         $history[] = ['role' => 'ai', 'content' => $answerText];
         session(['history' => $history]);
@@ -106,7 +98,7 @@ class GeminiController extends Controller
             foreach ($words as $word) {
                 $query->orWhere('name', 'like', '%' . trim($word) . '%');
             }
-        })->get();
+        })->limit(5)->get();
 
         if ($products->count() < 2) {
             $answer = "Mình chỉ tìm thấy " . $products->count() . " sản phẩm thôi 😅. Hãy thử nhập rõ hơn nha.";
@@ -129,10 +121,13 @@ class GeminiController extends Controller
         $history[] = ['role' => 'ai', 'content' => nl2br($answer)];
         session(['history' => $history]);
 
-        return response()->json(['answer' => nl2br($answer)]);
+        return response()->json([
+            'answer' => nl2br($answer),
+            'products' => $this->formatProducts($products)
+        ]);
     }
 
-    // 💸 Tìm sản phẩm rẻ nhất / đắt nhất toàn site
+    // 💸 Tìm sản phẩm rẻ nhất / đắt nhất toàn site (trả về format giống tìm kiếm)
     private function findCheapestAndMostExpensive($prompt, &$history)
     {
         $cheapest = Product::orderBy('price_sale', 'asc')->first();
@@ -149,10 +144,30 @@ class GeminiController extends Controller
         $answer .= "\n💰 **Sản phẩm rẻ nhất:** {$cheapest->name} — " . number_format($cheapest->price_sale, 0, ',', '.') . "₫";
         $answer .= "\n👑 **Sản phẩm đắt nhất:** {$mostExpensive->name} — " . number_format($mostExpensive->price_sale, 0, ',', '.') . "₫";
 
+        $products = collect([$cheapest, $mostExpensive]);
+
         $history[] = ['role' => 'ai', 'content' => nl2br($answer)];
         session(['history' => $history]);
 
-        return response()->json(['answer' => nl2br($answer)]);
+        return response()->json([
+            'answer' => nl2br($answer),
+            'products' => $this->formatProducts($products)
+        ]);
+    }
+
+    // Hàm format dữ liệu sản phẩm chuẩn để dùng chung
+    private function formatProducts($products)
+    {
+        return $products->take(5)->map(function ($p) {
+            return [
+                'name' => $p->name,
+                'detail' => $p->detail,
+                'price' => $p->price_sale,
+                'image' => $p->thumbnail ? asset('assets/images/product/' . $p->thumbnail) : '',
+                'detail_url' => route('site.product-detail', $p->slug),
+                'buy_url' => route('cart.add', ['id' => $p->id]),
+            ];
+        });
     }
 
     // 🔄 Reset lịch sử chat
