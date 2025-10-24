@@ -54,23 +54,20 @@ class AuthController extends Controller
     $user->roles = 'customer';
     $user->password = Hash::make($request->password);
 
-    // ✅ Xử lý upload avatar an toàn
+    // ✅ Upload avatar lên Cloudinary
     if ($request->hasFile('avatar')) {
-        $file = $request->file('avatar');
-        $filename = Str::slug($request->username) . '-' . time() . '.' . $file->getClientOriginalExtension();
-
-        // Kiểm tra và tạo thư mục nếu chưa có
-        $path = public_path('assets/images/user');
-        if (!file_exists($path)) {
-            mkdir($path, 0775, true);
-        }
-
-        // Thử di chuyển file, bắt lỗi nếu có
         try {
-            $file->move($path, $filename);
-            $user->avatar = $filename;
+            $uploadedFileUrl = Cloudinary::upload(
+                $request->file('avatar')->getRealPath(),
+                [
+                    'folder' => 'avatars', // Thư mục lưu trên Cloudinary
+                    'public_id' => Str::slug($request->username) . '-' . time(),
+                ]
+            )->getSecurePath();
+
+            $user->avatar = $uploadedFileUrl;
         } catch (\Exception $e) {
-            // Nếu lỗi quyền ghi hoặc lỗi khác, dùng ảnh mặc định
+            \Log::error('Upload avatar thất bại: ' . $e->getMessage());
             $user->avatar = 'default.png';
         }
     } else {
@@ -83,7 +80,7 @@ class AuthController extends Controller
 
     Auth::login($user);
 
-    return redirect()->route('login')->with('success', 'Đăng ký thành công');
+    return redirect()->route('login')->with('success', 'Đăng ký thành công!');
 }
 
 
@@ -227,40 +224,43 @@ public function update(Request $request)
         'name' => 'required|string|max:255',
         'phone' => 'nullable|string|max:20',
         'address' => 'nullable|string|max:255',
+        'username' => 'nullable|string|max:255|unique:user,username,' . $user->id,
         'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
     ]);
 
     $user->name = $request->name;
     $user->phone = $request->phone;
     $user->address = $request->address;
+    if ($request->filled('username')) {
+        $user->username = $request->username;
+    }
 
-    // Upload avatar
+    // ✅ Upload avatar lên Cloudinary
     if ($request->hasFile('avatar')) {
-        $file = $request->file('avatar');
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-        // Lưu file vào thư mục public/assets/images/user
-        $file->move(public_path('assets/images/user'), $filename);
-
-        // Xóa avatar cũ nếu có
-        if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
-            unlink(public_path('assets/images/user/' . $user->avatar));
+        // Xóa avatar cũ trên Cloudinary nếu có (nếu em muốn)
+        if ($user->avatar && !str_contains($user->avatar, 'default.png')) {
+            try {
+                $publicId = pathinfo($user->avatar, PATHINFO_FILENAME);
+                Cloudinary::destroy($publicId);
+            } catch (\Exception $e) {}
         }
 
-        $user->avatar = $filename;
+        // Upload ảnh mới
+        $upload = Cloudinary::upload($request->file('avatar')->getRealPath(), [
+            'folder' => 'user_avatar', // ảnh user nằm trong folder này
+            'public_id' => Str::slug($user->username ?? 'user') . '-' . time(),
+        ]);
+
+        $user->avatar = $upload->getSecurePath(); // Lưu link full URL ảnh
     }
 
     $user->save();
 
-    // Tạo link ảnh đầy đủ cho Render
-    $avatarUrl = config('app.url') . '/assets/images/user/' . $user->avatar;
-
     return response()->json([
         'success' => true,
         'message' => 'Cập nhật hồ sơ thành công!',
-        'user' => $user->fresh()->toArray(),
-        'avatar_path' => $user->avatar,
-        'avatar_url' => $avatarUrl, // ✅ Trả về URL đầy đủ để frontend cập nhật ngay
+        'user' => $user->fresh(),
+        'avatar_url' => $user->avatar, // ✅ Cloudinary trả sẵn URL
     ], 200);
 }
 
