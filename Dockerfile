@@ -23,7 +23,9 @@ RUN composer install --no-dev --optimize-autoloader --prefer-dist || true
 # --- Cấp quyền ghi cho storage và bootstrap ---
 RUN mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/public/assets/images \
+    && chown -R www-data:www-data /var/www/html/public/assets/images
 
 # --- Kích hoạt rewrite module của Apache ---
 RUN a2enmod rewrite

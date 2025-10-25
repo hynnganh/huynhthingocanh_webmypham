@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ProductReview;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ReviewController extends Controller
@@ -27,14 +28,15 @@ class ReviewController extends Controller
 
         $productId = $request->product_id;
 
-        $orderIds = \DB::table('order')
+        // ✅ Chỉ cho phép đánh giá nếu user đã có đơn hàng giao thành công (status = 5)
+        $orderExists = DB::table('order')
             ->join('orderdetail', 'order.id', '=', 'orderdetail.order_id')
             ->where('order.user_id', $user->id)
             ->where('orderdetail.product_id', $productId)
             ->where('order.status', 5)
-            ->pluck('order.id');
+            ->exists();
 
-        if ($orderIds->isEmpty()) {
+        if (!$orderExists) {
             return redirect()->back()->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã giao thành công.');
         }
 
@@ -69,5 +71,29 @@ class ReviewController extends Controller
         );
 
         return redirect()->back()->with('success', 'Đánh giá của bạn đã được lưu!');
+    }
+
+    // ✅ Hiển thị danh sách đánh giá
+    public function show($productId)
+    {
+        $reviews = ProductReview::with('user')
+            ->where('product_id', $productId)
+            ->latest()
+            ->get();
+
+        $user = Auth::user();
+
+        // kiểm tra user có được phép đánh giá không
+        $canReview = false;
+        if ($user) {
+            $canReview = DB::table('order')
+                ->join('orderdetail', 'order.id', '=', 'orderdetail.order_id')
+                ->where('order.user_id', $user->id)
+                ->where('orderdetail.product_id', $productId)
+                ->where('order.status', 5)
+                ->exists();
+        }
+
+        return view('frontend.product.review', compact('reviews', 'productId', 'canReview'));
     }
 }

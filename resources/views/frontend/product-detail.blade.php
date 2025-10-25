@@ -13,6 +13,7 @@
         </div>
 
         <div class="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-2xl space-y-12 px-4">
+
             {{-- ======================= THÔNG TIN SẢN PHẨM ======================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 border-b border-pink-100 pb-8">
                 {{-- Ảnh --}}
@@ -140,25 +141,27 @@
                 </div>
             </div>
 
-            {{-- ======================= SẢN PHẨM TƯƠNG TỰ ======================= --}}
-            <div class="pt-8">
-                <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">Sản Phẩm Tương Tự</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    @forelse($product_list as $product_row)
-                        <x-product-card :productrow="$product_row" />
-                    @empty
-                        <p class="text-gray-500 italic text-center col-span-full">Không có sản phẩm tương tự nào.</p>
-                    @endforelse
-                </div>
-            </div>
-
             {{-- ======================= ĐÁNH GIÁ SẢN PHẨM ======================= --}}
             <div class="pt-8">
                 <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">
                     Đánh Giá Sản Phẩm
                 </h3>
 
-                @auth
+                @php
+                    $user = Auth::user();
+                    $canReview = false;
+                    if ($user) {
+                        $canReview = DB::table('order')
+                            ->join('orderdetail', 'order.id', '=', 'orderdetail.order_id')
+                            ->where('order.user_id', $user->id)
+                            ->where('orderdetail.product_id', $product->id)
+                            ->where('order.status', 5)
+                            ->exists();
+                    }
+                @endphp
+
+                @if($user && $canReview)
+                    {{-- ✅ Form đánh giá --}}
                     <form action="{{ route('review.store') }}" method="POST" enctype="multipart/form-data"
                           class="space-y-6 bg-pink-50 p-6 rounded-xl border border-pink-200 shadow-md">
                         @csrf
@@ -205,11 +208,15 @@
                             </button>
                         </div>
                     </form>
+                @elseif($user)
+                    <p class="text-gray-600 italic">
+                        ⚠️ Bạn chỉ có thể đánh giá sản phẩm sau khi đơn hàng được giao thành công.
+                    </p>
                 @else
                     <p class="text-gray-600 italic">
                         Vui lòng <a href="{{ route('login') }}" class="text-pink-500 font-semibold hover:underline">đăng nhập</a> để gửi đánh giá.
                     </p>
-                @endauth
+                @endif
 
                 {{-- Danh sách đánh giá --}}
                 <div class="mt-8 space-y-6">
