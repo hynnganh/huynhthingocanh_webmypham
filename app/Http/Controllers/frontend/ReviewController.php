@@ -40,13 +40,13 @@ class ReviewController extends Controller
             return redirect()->back()->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã giao thành công.');
         }
 
-        // ✅ Upload ảnh & video vào thư mục public
+        // ✅ Upload ảnh & video vào thư mục public/assets/images/videos/reviews
         $imageUrl = null;
         $videoUrl = null;
 
         // Thư mục lưu
-        $imagePath = public_path('assets/reviews/images');
-        $videoPath = public_path('assets/reviews/videos');
+        $imagePath = public_path('assets/images/reviews');
+        $videoPath = public_path('assets/videos/reviews');
 
         // Tạo thư mục nếu chưa có
         if (!File::exists($imagePath)) {
@@ -60,14 +60,14 @@ class ReviewController extends Controller
         if ($request->hasFile('image')) {
             $imageName = time() . '_' . uniqid() . '.' . $request->file('image')->getClientOriginalExtension();
             $request->file('image')->move($imagePath, $imageName);
-            $imageUrl = 'assets/reviews/images/' . $imageName;
+            $imageUrl = 'assets/images/reviews/' . $imageName;
         }
 
         // ✅ Upload video
         if ($request->hasFile('video')) {
             $videoName = time() . '_' . uniqid() . '.' . $request->file('video')->getClientOriginalExtension();
             $request->file('video')->move($videoPath, $videoName);
-            $videoUrl = 'assets/reviews/videos/' . $videoName;
+            $videoUrl = 'assets/videos/reviews/' . $videoName;
         }
 
         // ✅ Lưu hoặc cập nhật review
@@ -94,7 +94,7 @@ class ReviewController extends Controller
 
         $user = Auth::user();
 
-        // kiểm tra user có được phép đánh giá không
+        // Kiểm tra user có được phép đánh giá không
         $canReview = false;
         if ($user) {
             $canReview = DB::table('order')
