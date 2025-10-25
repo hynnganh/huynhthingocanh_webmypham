@@ -238,19 +238,19 @@ public function update(Request $request)
         try {
             // Nếu avatar hiện tại là link Cloudinary -> xóa ảnh cũ
             if ($user->avatar && Str::startsWith($user->avatar, 'https://res.cloudinary.com')) {
-                $path = parse_url($user->avatar, PHP_URL_PATH); // /v12345/folder/filename.jpg
+                $path = parse_url($user->avatar, PHP_URL_PATH);
                 $segments = explode('/', trim($path, '/'));
-                $folder = $segments[count($segments) - 2] ?? null; // Lấy folder cũ (avatars hoặc user_avatar)
+                $folder = $segments[count($segments) - 2] ?? null;
                 $publicId = pathinfo(end($segments), PATHINFO_FILENAME);
                 if ($folder && $publicId) {
                     Cloudinary::destroy("$folder/$publicId");
                 }
             }
         } catch (\Exception $e) {
-            // ignore lỗi xóa ảnh cũ
+            // Bỏ qua lỗi xóa ảnh cũ
         }
 
-        // Upload ảnh mới lên Cloudinary
+        // Upload ảnh mới
         $upload = Cloudinary::upload(
             $request->file('avatar')->getRealPath(),
             [
@@ -262,23 +262,22 @@ public function update(Request $request)
         $user->avatar = $upload->getSecurePath();
     }
 
-    // ✅ Nếu user chưa có avatar (lần đầu), gán ảnh mặc định
+    // ✅ Nếu user chưa có avatar, gán ảnh mặc định
     if (empty($user->avatar)) {
-        $user->avatar = 'default.png';
+        $user->avatar = asset('asset/images/user/default.png');
     }
 
     $user->save();
 
-    // ✅ Chuẩn hóa đường dẫn ảnh trả về
-    $avatarUrl = filter_var($user->avatar, FILTER_VALIDATE_URL)
-        ? $user->avatar
-        : asset('asset/images/user/' . ltrim($user->avatar ?? 'default.png', '/'));
+    // ✅ Sau khi lưu, luôn đảm bảo trả về avatar là URL đầy đủ
+    if (!filter_var($user->avatar, FILTER_VALIDATE_URL)) {
+        $user->avatar = asset('asset/images/user/' . ltrim($user->avatar ?? 'default.png', '/'));
+    }
 
     return response()->json([
         'success' => true,
         'message' => 'Cập nhật hồ sơ thành công!',
         'user' => $user->fresh(),
-        'avatar_url' => $avatarUrl,
     ]);
 }
 

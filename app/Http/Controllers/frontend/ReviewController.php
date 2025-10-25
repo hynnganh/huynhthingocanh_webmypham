@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ProductReview;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ReviewController extends Controller
 {
@@ -38,16 +38,24 @@ class ReviewController extends Controller
             return redirect()->back()->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã giao thành công.');
         }
 
-        // Xử lý upload file
-        $imagePath = null;
-        $videoPath = null;
+        // ✅ Upload ảnh & video lên Cloudinary
+        $imageUrl = null;
+        $videoUrl = null;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('reviews/images', 'public');
+            $imageUpload = Cloudinary::upload(
+                $request->file('image')->getRealPath(),
+                ['folder' => 'product_reviews/images']
+            );
+            $imageUrl = $imageUpload->getSecurePath();
         }
 
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store('reviews/videos', 'public');
+            $videoUpload = Cloudinary::uploadVideo(
+                $request->file('video')->getRealPath(),
+                ['folder' => 'product_reviews/videos']
+            );
+            $videoUrl = $videoUpload->getSecurePath();
         }
 
         ProductReview::updateOrCreate(
@@ -55,8 +63,8 @@ class ReviewController extends Controller
             [
                 'rating' => $request->rating,
                 'comment' => $request->comment,
-                'image' => $imagePath,
-                'video' => $videoPath,
+                'image' => $imageUrl,
+                'video' => $videoUrl,
             ]
         );
 

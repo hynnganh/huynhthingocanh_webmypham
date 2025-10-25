@@ -7,30 +7,29 @@
         <div class="max-w-7xl mx-auto px-2">
             <button type="button" onclick="history.back()"
                 class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-400 transition">
-            Quay lại
+                Quay lại
             </button>
             <br><br>
         </div>
+
         <div class="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-2xl space-y-12 px-4">
-            
+            {{-- ======================= THÔNG TIN SẢN PHẨM ======================= --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 border-b border-pink-100 pb-8">
-            
-                {{-- CỘT 1 (lg:col-span-4): Ảnh sản phẩm --}}
+                {{-- Ảnh --}}
                 <div class="lg:col-span-4 flex flex-col items-center">
                     <div class="w-full max-w-sm mx-auto relative overflow-hidden rounded-xl shadow-xl border border-pink-100 p-2 bg-white">
-                        <img src="{{ asset('assets/images/product/' . $product->thumbnail) }}" 
+                        <img src="{{ asset('assets/images/product/' . $product->thumbnail) }}"
                              alt="{{ $product->name }}"
                              class="w-full h-auto object-cover rounded-lg" />
                     </div>
                 </div>
 
-                {{-- CỘT 2 (lg:col-span-5): Thông tin, Giá, SL, Nút mua hàng --}}
+                {{-- Thông tin --}}
                 <div class="lg:col-span-5 flex flex-col justify-start space-y-5">
-                    
                     <h1 class="text-3xl font-extrabold text-gray-800 border-b border-pink-200 pb-3">
                         {{ $product->name }}
                     </h1>
-                    
+
                     <div class="flex items-baseline space-x-4 bg-pink-50 p-3 rounded-lg border border-pink-200">
                         <span class="text-3xl font-bold text-red-600">
                             {{ number_format($product->price_sale, 0, ',', '.') }} <sup>₫</sup>
@@ -47,388 +46,242 @@
                             </span>
                         @endif
                     </div>
-                    
+
                     <div class="flex flex-col space-y-4 pt-2">
-    <div class="flex items-center justify-start">
-        <label class="text-lg font-semibold text-gray-700 mr-2">SL:</label>
-        <input id="product-quantity" name="quantity" type="number" value="1" min="1" max="{{ $product->qty }}"
-            class="border border-pink-300 px-3 py-2 rounded-lg w-16 text-center text-gray-700 focus:ring-pink-400 focus:border-pink-400"
-            oninput="this.value = Math.max(1, Math.min({{ $product->qty }}, this.value))" />
-    </div>
+                        <div class="flex items-center justify-start">
+                            <label class="text-lg font-semibold text-gray-700 mr-2">SL:</label>
+                            <input id="product-quantity" name="quantity" type="number" value="1" min="1" max="{{ $product->qty }}"
+                                   class="border border-pink-300 px-3 py-2 rounded-lg w-16 text-center text-gray-700 focus:ring-pink-400 focus:border-pink-400"
+                                   oninput="this.value = Math.max(1, Math.min({{ $product->qty }}, this.value))" />
+                        </div>
 
-    <div class="flex items-center justify-start">
-        <div class="text-lg font-semibold">
-            Tình trạng: 
-            @if($product->qty > 0)
-                <span class="text-green-600 font-bold">Còn hàng ({{ $product->qty }} sp)</span>
-            @else
-                <span class="text-red-600 font-bold">Hết hàng</span>
-            @endif
-        </div>
-    </div>
+                        <div class="flex items-center justify-start">
+                            <div class="text-lg font-semibold">
+                                Tình trạng:
+                                @if($product->qty > 0)
+                                    <span class="text-green-600 font-bold">Còn hàng ({{ $product->qty }} sp)</span>
+                                @else
+                                    <span class="text-red-600 font-bold">Hết hàng</span>
+                                @endif
+                            </div>
+                        </div>
 
-    {{-- ✅ Nút chức năng --}}
-    <div class="flex space-x-4 justify-start">
-        
-        {{-- 🛒 Thêm vào giỏ --}}
-        <form id="add-to-cart-form" action="{{ route('cart.add') }}" method="POST" class="w-full max-w-[150px]">
-            @csrf
-            <input type="hidden" name="id" value="{{ $product->id }}">
-            <input type="hidden" name="name" value="{{ $product->name }}">
-            <input type="hidden" name="price" value="{{ $product->price_sale }}">
-            <input type="hidden" id="cart-quantity-input" name="quantity" value="1">
-            
-            <button type="submit" class="bg-pink-500 text-white font-bold text-base px-4 py-3 rounded-xl hover:bg-pink-600 transition duration-300 w-full shadow-lg shadow-pink-200"
-                    {{ $product->qty <= 0 ? 'disabled' : '' }}>
-                <i class="fa fa-shopping-cart mr-1"></i> Giỏ hàng
-            </button>
-        </form>
+                        {{-- Nút --}}
+                        <div class="flex space-x-4 justify-start">
+                            {{-- Giỏ hàng --}}
+                            <form id="add-to-cart-form" action="{{ route('cart.add') }}" method="POST" class="w-full max-w-[150px]">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $product->id }}">
+                                <input type="hidden" name="name" value="{{ $product->name }}">
+                                <input type="hidden" name="price" value="{{ $product->price_sale }}">
+                                <input type="hidden" id="cart-quantity-input" name="quantity" value="1">
 
-        {{-- ⚡ Mua ngay --}}
-        <form action="{{ route('cart.buyNow') }}" method="POST" class="w-full max-w-[150px]">
-            @csrf
-            <input type="hidden" name="id" value="{{ $product->id }}">
-            <input type="hidden" name="quantity" id="buy-now-quantity-input" value="1">
-            <button type="submit"
-                    class="bg-red-500 text-white font-bold text-base px-4 py-3 rounded-xl w-full hover:bg-red-600 transition duration-300 shadow-lg shadow-red-200 {{ $product->qty <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                    {{ $product->qty <= 0 ? 'disabled' : '' }}>
-                Mua ngay
-            </button>
-        </form>
+                                <button type="submit" class="bg-pink-500 text-white font-bold text-base px-4 py-3 rounded-xl hover:bg-pink-600 transition duration-300 w-full shadow-lg shadow-pink-200"
+                                        {{ $product->qty <= 0 ? 'disabled' : '' }}>
+                                    <i class="fa fa-shopping-cart mr-1"></i> Giỏ hàng
+                                </button>
+                            </form>
 
-        @auth
-            <button 
-                class="wishlist-btn w-full max-w-[150px] bg-white border border-pink-400 text-pink-500 font-bold text-base px-4 py-2 rounded-xl hover:bg-pink-50 transition duration-300 shadow-md flex justify-center items-center gap-2"
-                data-product-id="{{ $product->id }}"
-            >
-                @if(auth()->user()->wishlist && auth()->user()->wishlist->contains('product_id', $product->id))
-                    <i class="fas fa-heart text-pink-500 text-lg"></i> 
-                    <span>Đã thích</span>
-                @else
-                    <i class="far fa-heart text-gray-400 text-lg"></i> 
-                    <span>Yêu thích</span>
-                @endif
-            </button>
-        @endauth
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const buttons = document.querySelectorAll('.wishlist-btn');
-
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const productId = this.dataset.productId;
-
-            fetch('{{ route('wishlist.toggle') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ product_id: productId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'added') {
-                    showToast('Đã thêm vào danh sách yêu thích');
-                } else if (data.status === 'removed') {
-                    showToast('Đã xóa khỏi danh sách yêu thích', false);
-                }
-
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500);
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Lỗi khi cập nhật yêu thích', false);
-            });
-        });
-    });
-});
-</script>
-
+                            {{-- Mua ngay --}}
+                            <form action="{{ route('cart.buyNow') }}" method="POST" class="w-full max-w-[150px]">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $product->id }}">
+                                <input type="hidden" name="quantity" id="buy-now-quantity-input" value="1">
+                                <button type="submit"
+                                        class="bg-red-500 text-white font-bold text-base px-4 py-3 rounded-xl w-full hover:bg-red-600 transition duration-300 shadow-lg shadow-red-200 {{ $product->qty <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                        {{ $product->qty <= 0 ? 'disabled' : '' }}>
+                                    Mua ngay
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- CỘT 3 (lg:col-span-3): Mã khuyến mãi --}}
+                {{-- Mã khuyến mãi --}}
                 <div class="lg:col-span-3 flex flex-col justify-start space-y-5">
                     <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center border-b border-pink-200 pb-5">
                         <i class="fa fa-tag text-pink-500 mr-2 text-sm"></i> Mã Khuyến Mãi
                     </h3>
-                    
                     <div class="grid grid-cols-1 gap-4">
                         @php
-                            // GIẢ LẬP DỮ LIỆU MÃ VOUCHER
                             $coupons = [
                                 ['code' => 'COCOLUX25K', 'discount' => '25.000đ', 'condition' => 'Đơn hàng từ 299K'],
                                 ['code' => 'FREESHIP', 'discount' => 'Miễn phí ship', 'condition' => 'Đơn hàng từ 400K'],
                                 ['code' => 'VIP10', 'discount' => 'Giảm 10%', 'condition' => 'Chỉ áp dụng cho thành viên VIP'],
                             ];
                         @endphp
-
                         @foreach($coupons as $coupon)
-                            {{-- Coupon Card --}}
                             <div class="p-4 border border-pink-300 rounded-xl shadow-lg bg-white flex flex-col justify-between">
-                                
                                 <div class="mb-3">
                                     <h4 class="text-lg font-bold text-red-600">{{ $coupon['discount'] }}</h4>
                                     <p class="text-sm text-gray-500 line-clamp-2">{{ $coupon['condition'] }}</p>
                                 </div>
-                                
                                 <div class="flex space-x-2 mt-auto">
-                                    
-                                    {{-- Nút Chi tiết (Mở Modal) --}}
                                     <button onclick="openModal('{{ $coupon['code'] }}', '{{ $coupon['discount'] }}', '{{ $coupon['condition'] }}')"
                                             class="flex-1 border border-pink-500 text-pink-500 font-semibold text-sm px-2 py-1 rounded-lg hover:bg-pink-50 transition duration-150">
                                         Chi tiết
                                     </button>
-
-                                    {{-- Nút Sao chép Mã Voucher --}}
-                                    <button onclick="copyCode('{{ $coupon['code'] }}')" 
+                                    <button onclick="copyCode('{{ $coupon['code'] }}')"
                                             class="flex-1 bg-pink-500 text-white font-bold text-sm px-2 py-1 rounded-lg flex items-center justify-center hover:bg-pink-600 transition duration-150">
-                                        <span class="mr-1">Sao chép</span>
-                                        <i class="fa fa-copy text-xs"></i>
+                                        <span class="mr-1">Sao chép</span><i class="fa fa-copy text-xs"></i>
                                     </button>
-                                    
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
             </div>
+
+            {{-- ======================= MÔ TẢ ======================= --}}
             <div class="pt-4 border-b border-pink-100 pb-8">
                 <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">Mô Tả Chi Tiết</h3>
                 <div class="prose max-w-none text-gray-700 product-detail leading-relaxed">
                     {!! $product->detail !!}
                 </div>
             </div>
-            
+
+            {{-- ======================= SẢN PHẨM TƯƠNG TỰ ======================= --}}
             <div class="pt-8">
                 <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">Sản Phẩm Tương Tự</h3>
-                
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                     @forelse($product_list as $product_row)
-                         <x-product-card :productrow="$product_row" />
-                     @empty
+                    @forelse($product_list as $product_row)
+                        <x-product-card :productrow="$product_row" />
+                    @empty
                         <p class="text-gray-500 italic text-center col-span-full">Không có sản phẩm tương tự nào.</p>
                     @endforelse
                 </div>
             </div>
+
+            {{-- ======================= ĐÁNH GIÁ SẢN PHẨM ======================= --}}
             <div class="pt-8">
-    <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">
-        Đánh Giá Sản Phẩm
-    </h3>
+                <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-pink-400 pb-2 mb-6">
+                    Đánh Giá Sản Phẩm
+                </h3>
 
-    {{-- Form Gửi Đánh Giá --}}
-    @auth
-        <form action="{{ route('review.store') }}" method="POST" enctype="multipart/form-data"
-              class="space-y-5 bg-pink-50 p-6 rounded-xl border border-pink-200 shadow-md">
-            @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                @auth
+                    <form action="{{ route('review.store') }}" method="POST" enctype="multipart/form-data"
+                          class="space-y-6 bg-pink-50 p-6 rounded-xl border border-pink-200 shadow-md">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-            <div>
-                <label class="font-semibold text-gray-700">Đánh giá của bạn:</label>
-                <select name="rating" class="mt-2 border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400">
-                    <option value="5">5 sao</option>
-                    <option value="4">4 sao</option>
-                    <option value="3">3 sao</option>
-                    <option value="2">2 sao</option>
-                    <option value="1">1 sao</option>
-                </select>
-            </div>
+                        {{-- Rating --}}
+                        <div>
+                            <label class="font-semibold text-gray-700 block mb-2">Đánh giá của bạn:</label>
+                            <div class="flex space-x-2 text-2xl text-gray-400" id="rating-stars">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition" data-value="{{ $i }}"></i>
+                                @endfor
+                            </div>
+                            <input type="hidden" name="rating" id="rating" required>
+                        </div>
 
-            <div>
-                <label class="font-semibold text-gray-700">Bình luận:</label>
-                <textarea name="comment" rows="3" class="w-full mt-2 border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
-            </div>
+                        {{-- Comment --}}
+                        <div>
+                            <label class="font-semibold text-gray-700 block mb-2">Bình luận:</label>
+                            <textarea name="comment" rows="3"
+                                      class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400"
+                                      placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+                        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="font-semibold text-gray-700">Ảnh minh họa (tùy chọn):</label>
-                    <input type="file" name="image" accept="image/*" class="w-full mt-2 border border-pink-300 rounded-lg p-2">
+                        {{-- Ảnh và video --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-semibold text-gray-700 block mb-2">Ảnh minh họa:</label>
+                                <input type="file" name="image" id="image" accept="image/*"
+                                       class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400">
+                                <img id="image-preview" class="hidden mt-3 w-32 h-32 rounded-lg border border-pink-300 object-cover" />
+                            </div>
+                            <div>
+                                <label class="font-semibold text-gray-700 block mb-2">Video minh họa:</label>
+                                <input type="file" name="video" id="video" accept="video/*"
+                                       class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400">
+                                <video id="video-preview" class="hidden mt-3 w-60 rounded-lg border border-pink-300" controls></video>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-pink-500 text-white font-bold px-6 py-2 rounded-lg hover:bg-pink-600 transition shadow-md">
+                                Gửi đánh giá
+                            </button>
+                        </div>
+                    </form>
+                @else
+                    <p class="text-gray-600 italic">
+                        Vui lòng <a href="{{ route('login') }}" class="text-pink-500 font-semibold hover:underline">đăng nhập</a> để gửi đánh giá.
+                    </p>
+                @endauth
+
+                {{-- Danh sách đánh giá --}}
+                <div class="mt-8 space-y-6">
+                    @forelse ($product->reviews as $review)
+                        <div class="border border-pink-100 p-4 rounded-lg bg-white shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="font-bold text-gray-800">
+                                    {{ $review->user->name ?? 'Người dùng ẩn danh' }}
+                                </div>
+                                <div class="text-yellow-500">
+                                    @for ($i = 0; $i < $review->rating; $i++)
+                                        ★
+                                    @endfor
+                                    @for ($i = $review->rating; $i < 5; $i++)
+                                        ☆
+                                    @endfor
+                                </div>
+                            </div>
+
+                            <p class="text-gray-700 mt-2">{{ $review->comment }}</p>
+
+                            @if($review->image)
+                                <div class="mt-3">
+                                    <img src="{{ Str::startsWith($review->image, 'https://') ? $review->image : asset('storage/' . $review->image) }}"
+                                         alt="Ảnh đánh giá"
+                                         class="rounded-lg border border-pink-200 max-w-[200px]">
+                                </div>
+                            @endif
+
+                            @if($review->video)
+                                <div class="mt-3">
+                                    <video width="320" controls class="rounded-lg border border-pink-200">
+                                        <source src="{{ Str::startsWith($review->video, 'https://') ? $review->video : asset('storage/' . $review->video) }}" type="video/mp4">
+                                    </video>
+                                </div>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="text-gray-500 italic">Chưa có đánh giá nào cho sản phẩm này.</p>
+                    @endforelse
                 </div>
-                <div>
-                    <label class="font-semibold text-gray-700">Video minh họa (tùy chọn):</label>
-                    <input type="file" name="video" accept="video/*" class="w-full mt-2 border border-pink-300 rounded-lg p-2">
-                </div>
             </div>
-
-            <div class="flex justify-end">
-                <button type="submit" class="bg-pink-500 text-white font-bold px-6 py-2 rounded-lg hover:bg-pink-600 transition shadow-md">
-                    Gửi đánh giá
-                </button>
-            </div>
-        </form>
-    @else
-        <p class="text-gray-600 italic">Vui lòng <a href="{{ route('login') }}" class="text-pink-500 font-semibold hover:underline">đăng nhập</a> để gửi đánh giá.</p>
-    @endauth
-
-    {{-- Danh sách đánh giá --}}
-    <div class="mt-8 space-y-6">
-        @forelse ($product->reviews as $review)
-            <div class="border border-pink-100 p-4 rounded-lg bg-white shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div class="font-bold text-gray-800">
-                        {{ $review->user->name ?? 'Người dùng ẩn danh' }}
-                    </div>
-                    <div class="text-yellow-500">
-                        @for ($i = 0; $i < $review->rating; $i++)
-                            ★
-                        @endfor
-                        @for ($i = $review->rating; $i < 5; $i++)
-                            ☆
-                        @endfor
-                    </div>
-                </div>
-
-                <p class="text-gray-700 mt-2">{{ $review->comment }}</p>
-
-                {{-- Ảnh minh họa --}}
-                @if($review->image)
-                    <div class="mt-3">
-                        <img src="{{ asset('storage/' . $review->image) }}" alt="Ảnh đánh giá"
-                             class="rounded-lg border border-pink-200 max-w-[200px]">
-                    </div>
-                @endif
-
-                {{-- Video minh họa --}}
-                @if($review->video)
-                    <div class="mt-3">
-                        <video width="320" controls class="rounded-lg border border-pink-200">
-                            <source src="{{ asset('storage/' . $review->video) }}" type="video/mp4">
-                            Trình duyệt của bạn không hỗ trợ video.
-                        </video>
-                    </div>
-                @endif
-            </div>
-        @empty
-            <p class="text-gray-500 italic">Chưa có đánh giá nào cho sản phẩm này.</p>
-        @endforelse
-    </div>
-</div>
-
         </div>
     </main>
 
+    {{-- Script Preview & Rating --}}
+    <script>
+    document.getElementById('image').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) {
+            const preview = document.getElementById('image-preview');
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+        }
+    });
+    document.getElementById('video').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) {
+            const preview = document.getElementById('video-preview');
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+        }
+    });
 
-    {{-- START: Modal Chi tiết Mã Khuyến Mãi (Giữ nguyên) --}}
-    <div id="coupon-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden justify-center items-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
-            
-            <div class="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 class="text-xl font-bold text-gray-800">Chi tiết Mã khuyến mại</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700">
-                    <i class="fa fa-times text-2xl"></i>
-                </button>
-            </div>
-
-            <div class="space-y-4">
-                
-                <div class="pb-3 border-b">
-                    <p class="text-lg font-bold">Giảm <span class="text-red-600" id="modal-discount-amount"></span></p>
-                    <p class="text-sm text-gray-500" id="modal-condition-summary"></p>
-                </div>
-                
-                <div class="flex items-center justify-between border p-3 rounded-lg bg-gray-50">
-                    <p class="text-xl font-bold text-pink-600" id="modal-coupon-code"></p>
-                    <button onclick="copyCode(document.getElementById('modal-coupon-code').textContent)" class="text-pink-500 hover:text-pink-700 ml-4">
-                        <i class="fa fa-copy text-lg"></i>
-                    </button>
-                </div>
-
-                <div>
-                    <p class="font-semibold text-gray-700">Áp dụng từ</p>
-                    <p class="text-gray-600">2025-04-04 – 2025-09-30</p>
-                </div>
-
-                <div class="border-t pt-4">
-                    <p class="font-semibold text-gray-700 mb-2">Chi tiết</p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm pl-4">
-                        <li>Điều kiện chi tiết sẽ được tải vào đây dựa trên mã voucher.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                <button onclick="closeModal()" class="bg-gray-200 text-gray-700 font-semibold px-5 py-2 rounded-lg hover:bg-gray-300">
-                    Đóng
-                </button>
-                <button onclick="copyCode(document.getElementById('modal-coupon-code').textContent); closeModal();" class="bg-pink-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-pink-600">
-                    Sao chép
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ✅ Toast thông báo -->
-<div id="toast" class="fixed bottom-5 right-5 hidden text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300"></div>
-
-<script>
-    const modal = document.getElementById('coupon-detail-modal');
-    const modalCouponCode = document.getElementById('modal-coupon-code');
-    const modalDiscountAmount = document.getElementById('modal-discount-amount');
-    const modalConditionSummary = document.getElementById('modal-condition-summary');
-
-    function openModal(code, discount, condition) {
-        modalCouponCode.textContent = code;
-        modalDiscountAmount.textContent = discount;
-        modalConditionSummary.textContent = condition;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    function showToast(message, success = true) {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
-
-        toast.textContent = message;
-        toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg z-50 text-white transition-opacity duration-300 ${
-            success ? 'bg-green-500' : 'bg-red-500'
-        }`;
-
-        toast.classList.remove('hidden', 'opacity-0');
-        toast.classList.add('opacity-100');
-
-        setTimeout(() => {
-            toast.classList.remove('opacity-100');
-            toast.classList.add('opacity-0');
-        }, 2000);
-
-        setTimeout(() => {
-            toast.classList.add('hidden');
-        }, 2300);
-    }
-
-    function copyCode(code) {
-        navigator.clipboard.writeText(code).then(() => {
-            showToast("Đã sao chép mã: " + code, true);
-        }).catch(err => {
-            console.error('Lỗi sao chép:', err);
-            showToast("Không thể sao chép. Vui lòng thử lại", false);
+    const stars = document.querySelectorAll('#rating-stars i');
+    const ratingInput = document.getElementById('rating');
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const value = parseInt(star.dataset.value);
+            ratingInput.value = value;
+            stars.forEach(s => s.classList.toggle('text-yellow-400', s.dataset.value <= value));
         });
-    }
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
     });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-            closeModal();
-        }
-    });
-</script>
-
-
+    </script>
 </x-layout-site>
