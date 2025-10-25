@@ -44,7 +44,7 @@ class AuthController extends Controller
     }
 
     // Xử lý đăng ký
-    public function register(RegisterUserRequest $request)
+public function register(RegisterUserRequest $request)
 {
     $user = new User();
     $user->name = $request->name;
@@ -62,7 +62,7 @@ class AuthController extends Controller
                 $request->file('avatar')->getRealPath(),
                 [
                     'folder' => 'avatars', // Thư mục lưu trên Cloudinary
-                    'public_id' => Str::slug($request->username) . '-' . time(),
+                    'public_id' => Str::slug($request->username ?? 'user') . '-' . time(),
                 ]
             )->getSecurePath();
 
@@ -79,10 +79,13 @@ class AuthController extends Controller
     $user->status = 1;
     $user->save();
 
+    // ✅ Đăng nhập ngay sau khi đăng ký
     Auth::login($user);
 
-    return redirect()->route('login')->with('success', 'Đăng ký thành công!');
+    // ✅ Chuyển hướng đúng — không nên về trang login
+    return redirect()->route('home')->with('success', 'Đăng ký thành công!');
 }
+
 
 
     // Trang account + liệt kê đơn hàng
@@ -132,11 +135,6 @@ class AuthController extends Controller
         3 => ['text' => 'Đang chuẩn bị hàng', 'color' => 'orange-600'],
         4 => ['text' => 'Đang giao hàng', 'color' => 'green-600'],
         5 => ['text' => 'Giao thành công', 'color' => 'teal-600'],
-        6 => ['text' => 'Đã hủy', 'color' => 'red-600'],
-        7 => ['text' => 'Hoàn trả', 'color' => 'purple-600'],
-        8 => ['text' => 'Đổi hàng', 'color' => 'indigo-600'],
-        9 => ['text' => 'Từ chối', 'color' => 'gray-600'],
-        10 => ['text' => 'Khác', 'color' => 'pink-600'],
     ];
 
     $status = $statusLabels[$order->status] ?? ['text' => 'Chưa xác định', 'color' => 'gray-500'];
@@ -230,6 +228,7 @@ public function update(Request $request)
     ]);
 
     $user->fill($request->only(['name', 'phone', 'address']));
+
     if ($request->filled('username')) {
         $user->username = $request->username;
     }
@@ -237,28 +236,43 @@ public function update(Request $request)
     // ✅ Upload avatar mới lên Cloudinary nếu có
     if ($request->hasFile('avatar')) {
         try {
+            // Nếu avatar hiện tại là link Cloudinary -> xóa ảnh cũ
             if ($user->avatar && Str::startsWith($user->avatar, 'https://res.cloudinary.com')) {
-                $publicId = pathinfo(parse_url($user->avatar, PHP_URL_PATH), PATHINFO_FILENAME);
-                Cloudinary::destroy('user_avatar/' . $publicId);
+                $path = parse_url($user->avatar, PHP_URL_PATH); // /v12345/folder/filename.jpg
+                $segments = explode('/', trim($path, '/'));
+                $folder = $segments[count($segments) - 2] ?? null; // Lấy folder cũ (avatars hoặc user_avatar)
+                $publicId = pathinfo(end($segments), PATHINFO_FILENAME);
+                if ($folder && $publicId) {
+                    Cloudinary::destroy("$folder/$publicId");
+                }
             }
         } catch (\Exception $e) {
             // ignore lỗi xóa ảnh cũ
         }
 
-        $upload = Cloudinary::upload($request->file('avatar')->getRealPath(), [
-            'folder' => 'user_avatar',
-            'public_id' => Str::slug($user->username ?? 'user') . '-' . time(),
-        ]);
+        // Upload ảnh mới lên Cloudinary
+        $upload = Cloudinary::upload(
+            $request->file('avatar')->getRealPath(),
+            [
+                'folder' => 'user_avatar',
+                'public_id' => Str::slug($user->username ?? 'user') . '-' . time(),
+            ]
+        );
 
         $user->avatar = $upload->getSecurePath();
     }
 
+    // ✅ Nếu user chưa có avatar (lần đầu), gán ảnh mặc định
+    if (empty($user->avatar)) {
+        $user->avatar = 'default.png';
+    }
+
     $user->save();
 
-    // ✅ Tự động chuẩn hóa URL trả về (dù local hay Cloudinary)
-    $avatarUrl = Str::startsWith($user->avatar, ['http', 'https'])
+    // ✅ Chuẩn hóa đường dẫn ảnh trả về
+    $avatarUrl = filter_var($user->avatar, FILTER_VALIDATE_URL)
         ? $user->avatar
-        : asset('storage/user/' . ltrim($user->avatar ?? 'default.png', '/'));
+        : asset('asset/images/user/' . ltrim($user->avatar ?? 'default.png', '/'));
 
     return response()->json([
         'success' => true,
@@ -267,6 +281,7 @@ public function update(Request $request)
         'avatar_url' => $avatarUrl,
     ]);
 }
+
 
 
 }
