@@ -240,16 +240,16 @@
 
                             @if($review->image)
                                 <div class="mt-3">
-                                    <img src="{{ Str::startsWith($review->image, 'https://') ? $review->image : asset('storage/' . $review->image) }}"
-                                         alt="Ảnh đánh giá"
-                                         class="rounded-lg border border-pink-200 max-w-[200px]">
+                                    <img src="{{ asset($review->image) }}" alt="Ảnh đánh giá"
+     class="rounded-lg border border-pink-200 max-w-[200px]">
+
                                 </div>
                             @endif
 
                             @if($review->video)
                                 <div class="mt-3">
                                     <video width="320" controls class="rounded-lg border border-pink-200">
-                                        <source src="{{ Str::startsWith($review->video, 'https://') ? $review->video : asset('storage/' . $review->video) }}" type="video/mp4">
+<source src="{{ asset($review->video) }}" type="video/mp4">
                                     </video>
                                 </div>
                             @endif

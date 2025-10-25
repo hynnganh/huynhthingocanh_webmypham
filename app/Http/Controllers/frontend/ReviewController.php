@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ProductReview;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\File;
 
 class ReviewController extends Controller
 {
@@ -28,7 +28,7 @@ class ReviewController extends Controller
 
         $productId = $request->product_id;
 
-        // ✅ Chỉ cho phép đánh giá nếu user đã có đơn hàng giao thành công (status = 5)
+        // ✅ Chỉ cho phép đánh giá nếu user có đơn hàng giao thành công (status = 5)
         $orderExists = DB::table('order')
             ->join('orderdetail', 'order.id', '=', 'orderdetail.order_id')
             ->where('order.user_id', $user->id)
@@ -40,26 +40,37 @@ class ReviewController extends Controller
             return redirect()->back()->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã giao thành công.');
         }
 
-        // ✅ Upload ảnh & video lên Cloudinary
+        // ✅ Upload ảnh & video vào thư mục public
         $imageUrl = null;
         $videoUrl = null;
 
+        // Thư mục lưu
+        $imagePath = public_path('assets/reviews/images');
+        $videoPath = public_path('assets/reviews/videos');
+
+        // Tạo thư mục nếu chưa có
+        if (!File::exists($imagePath)) {
+            File::makeDirectory($imagePath, 0775, true);
+        }
+        if (!File::exists($videoPath)) {
+            File::makeDirectory($videoPath, 0775, true);
+        }
+
+        // ✅ Upload ảnh
         if ($request->hasFile('image')) {
-            $imageUpload = Cloudinary::upload(
-                $request->file('image')->getRealPath(),
-                ['folder' => 'product_reviews/images']
-            );
-            $imageUrl = $imageUpload->getSecurePath();
+            $imageName = time() . '_' . uniqid() . '.' . $request->file('image')->getClientOriginalExtension();
+            $request->file('image')->move($imagePath, $imageName);
+            $imageUrl = 'assets/reviews/images/' . $imageName;
         }
 
+        // ✅ Upload video
         if ($request->hasFile('video')) {
-            $videoUpload = Cloudinary::uploadVideo(
-                $request->file('video')->getRealPath(),
-                ['folder' => 'product_reviews/videos']
-            );
-            $videoUrl = $videoUpload->getSecurePath();
+            $videoName = time() . '_' . uniqid() . '.' . $request->file('video')->getClientOriginalExtension();
+            $request->file('video')->move($videoPath, $videoName);
+            $videoUrl = 'assets/reviews/videos/' . $videoName;
         }
 
+        // ✅ Lưu hoặc cập nhật review
         ProductReview::updateOrCreate(
             ['user_id' => $user->id, 'product_id' => $productId],
             [

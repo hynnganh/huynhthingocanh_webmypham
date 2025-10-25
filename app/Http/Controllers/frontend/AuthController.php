@@ -12,7 +12,6 @@ use App\Models\OrderDetail;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use App\Http\Requests\RegisterUserRequest;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class AuthController extends Controller
 {
@@ -42,51 +41,35 @@ class AuthController extends Controller
     {
         return view('frontend.register');
     }
+
     // Xử lý đăng ký
-public function register(RegisterUserRequest $request)
-{
-    $user = new User();
-    $user->name = $request->name;
-    $user->phone = $request->phone;
-    $user->email = $request->email;
-    $user->address = $request->address; 
-    $user->username = $request->username;
-    $user->roles = 'customer';
-    $user->password = Hash::make($request->password);
+    public function register(RegisterUserRequest $request)
+    {
+        $user = new User();
+        $user->name = $request->name;
+        $user->phone = $request->phone;
+        $user->email = $request->email;
+        $user->address = $request->address;
+        $user->username = $request->username;
+        $user->roles = 'customer';
+        $user->password = Hash::make($request->password);
 
-    try {
-        // ✅ Nếu có file ảnh thì upload lên Cloudinary
         if ($request->hasFile('avatar')) {
-            $upload = Cloudinary::upload(
-                $request->file('avatar')->getRealPath(),
-                [
-                    'folder' => 'avatars',
-                    'public_id' => Str::slug($request->username ?? 'user') . '-' . time(),
-                ]
-            );
-
-            $user->avatar = $upload->getSecurePath(); // Lưu URL Cloudinary
+            $file = $request->file('avatar');
+            $filename = Str::slug($request->username) . '-' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('assets/images/user'), $filename);
+            $user->avatar = $filename;
         } else {
-            // ✅ Ảnh mặc định nếu không upload
-            $user->avatar = asset('assets/images/user/default.png');
+            $user->avatar = 'default.png';
         }
-    } catch (\Exception $e) {
-        \Log::error('Upload avatar thất bại: ' . $e->getMessage());
-        $user->avatar = asset('assets/images/user/default.png');
+
+        $user->created_by = Auth::id() ?? 1;
+        $user->status = 1;
+        $user->save();
+
+        Auth::login($user);
+        return redirect()->route('login')->with('success', 'Đăng ký thành công');
     }
-
-    $user->created_by = Auth::id() ?? 1;
-    $user->status = 1;
-    $user->save();
-
-    // ✅ Đăng nhập ngay sau khi đăng ký
-    Auth::login($user);
-
-    return redirect()->route('home')->with('success', 'Đăng ký thành công!');
-}
-
-
-
 
     // Trang account + liệt kê đơn hàng
     public function account()
@@ -135,6 +118,11 @@ public function register(RegisterUserRequest $request)
         3 => ['text' => 'Đang chuẩn bị hàng', 'color' => 'orange-600'],
         4 => ['text' => 'Đang giao hàng', 'color' => 'green-600'],
         5 => ['text' => 'Giao thành công', 'color' => 'teal-600'],
+        6 => ['text' => 'Đã hủy', 'color' => 'red-600'],
+        7 => ['text' => 'Hoàn trả', 'color' => 'purple-600'],
+        8 => ['text' => 'Đổi hàng', 'color' => 'indigo-600'],
+        9 => ['text' => 'Từ chối', 'color' => 'gray-600'],
+        10 => ['text' => 'Khác', 'color' => 'pink-600'],
     ];
 
     $status = $statusLabels[$order->status] ?? ['text' => 'Chưa xác định', 'color' => 'gray-500'];
@@ -213,6 +201,8 @@ public function register(RegisterUserRequest $request)
 
         return redirect()->route('login')->with('success', 'Mật khẩu đã được đặt lại thành công');
     }
+
+
 public function update(Request $request)
 {
     $user = auth()->user();
@@ -221,67 +211,38 @@ public function update(Request $request)
         'name' => 'required|string|max:255',
         'phone' => 'nullable|string|max:20',
         'address' => 'nullable|string|max:255',
-        'username' => 'nullable|string|max:255|unique:user,username,' . $user->id,
         'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
     ]);
 
-    // ✅ Cập nhật thông tin cơ bản
-    $user->fill($request->only(['name', 'phone', 'address']));
+    $user->name = $request->name;
+    $user->phone = $request->phone;
+    $user->address = $request->address;
 
-    if ($request->filled('username')) {
-        $user->username = $request->username;
-    }
-
-    // ✅ Upload avatar mới lên Cloudinary (nếu có)
+    // Upload avatar
     if ($request->hasFile('avatar')) {
-        try {
-            // Nếu đã có avatar trên Cloudinary → xóa ảnh cũ
-            if ($user->avatar && Str::startsWith($user->avatar, 'https://res.cloudinary.com')) {
-                $path = parse_url($user->avatar, PHP_URL_PATH); // /v12345/folder/filename.jpg
-                $segments = explode('/', trim($path, '/'));
-                $folder = $segments[count($segments) - 2] ?? null;
-                $publicId = pathinfo(end($segments), PATHINFO_FILENAME);
-                if ($folder && $publicId) {
-                    Cloudinary::destroy("$folder/$publicId");
-                }
-            }
-        } catch (\Exception $e) {
-            // Bỏ qua lỗi xóa ảnh cũ
+        $file = $request->file('avatar');
+        
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('assets/images/user'), $filename);
+
+        if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
+            unlink(public_path('assets/images/user/' . $user->avatar));
         }
 
-        // Upload ảnh mới lên Cloudinary
-        $upload = Cloudinary::upload(
-            $request->file('avatar')->getRealPath(),
-            [
-                'folder' => 'user_avatar',
-                'public_id' => Str::slug($user->username ?? 'user') . '-' . time(),
-            ]
-        );
-
-        $user->avatar = $upload->getSecurePath();
-    }
-
-    // ✅ Nếu user chưa có avatar thì dùng ảnh mặc định
-    if (empty($user->avatar)) {
-        $user->avatar = asset('assets/images/user/default.png');
+        $user->avatar = $filename;
     }
 
     $user->save();
-
-    // ✅ Đảm bảo avatar luôn là URL đầy đủ
-    $avatarUrl = Str::startsWith($user->avatar, 'http')
-        ? $user->avatar
-        : asset('assets/images/user/' . ltrim($user->avatar ?? 'default.png', '/'));
-
     return response()->json([
         'success' => true,
         'message' => 'Cập nhật hồ sơ thành công!',
-        'user' => $user->fresh(),
-        'avatar_url' => $avatarUrl,
-    ]);
+        'user' => $user->fresh()->toArray(),
+        'avatar_path' => $user->avatar, 
+    ], 200);
+
+
+    return redirect()->route('update')->with('success', 'Cập nhập tài khoản thành công');
+
 }
-
-
-
 
 }
