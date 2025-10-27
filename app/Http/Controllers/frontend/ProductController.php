@@ -13,12 +13,12 @@ use Illuminate\Support\Facades\DB; // Thêm DB Facade
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+public function index(Request $request)
 {
     $args = [['status', '=', 1]];
     $listCategoryIds = [];
 
-    // Lọc theo danh mục (có thể chọn nhiều)
+    // === 1️⃣ Lọc theo danh mục (nếu có) ===
     $categorySlugs = (array) $request->input('category_slug', []);
     if (!empty($categorySlugs)) {
         $selectedCategories = Category::where('status', 1)
@@ -26,21 +26,21 @@ class ProductController extends Controller
             ->get();
 
         foreach ($selectedCategories as $category) {
-            // Lấy ID danh mục cha + con
+            // Lấy luôn danh mục cha + con
             $listCategoryIds = array_merge($listCategoryIds, $this->getListCategory($category->id));
         }
         $listCategoryIds = array_unique($listCategoryIds);
     }
 
-    // Tạo query gốc
+    // Query gốc
     $productQuery = Product::where($args);
 
-    // Lọc theo danh mục (nếu có)
+    // Áp dụng lọc danh mục nếu có
     if (!empty($listCategoryIds)) {
         $productQuery->whereIn('category_id', $listCategoryIds);
     }
 
-    // Lọc theo thương hiệu (có thể chọn nhiều)
+    // === 2️⃣ Lọc theo thương hiệu (nếu có) ===
     $brandSlugs = (array) $request->input('brand_slug', []);
     if (!empty($brandSlugs)) {
         $brandIds = Brand::where('status', 1)
@@ -53,14 +53,19 @@ class ProductController extends Controller
         }
     }
 
-    // Lọc theo khoảng giá
-    $min = (int) $request->input('min', 0);
-    $max = (int) $request->input('max', 1000000000);
-    if ($min > 0 || $max < 1000000000) {
+    // === 3️⃣ Lọc theo khoảng giá (chỉ khi người dùng chọn) ===
+    $min = $request->filled('min') ? (int) $request->input('min') : null;
+    $max = $request->filled('max') ? (int) $request->input('max') : null;
+
+    if (!is_null($min) && !is_null($max)) {
         $productQuery->whereBetween('price_sale', [$min, $max]);
+    } elseif (!is_null($min)) {
+        $productQuery->where('price_sale', '>=', $min);
+    } elseif (!is_null($max)) {
+        $productQuery->where('price_sale', '<=', $max);
     }
 
-    // Sắp xếp
+    // === 4️⃣ Sắp xếp ===
     $sort = $request->input('sort');
     switch ($sort) {
         case 'asc':
@@ -74,15 +79,16 @@ class ProductController extends Controller
             break;
     }
 
-    // Phân trang
+    // === 5️⃣ Phân trang ===
     $product_list = $productQuery->paginate(50)->appends($request->query());
 
-    // Danh mục & thương hiệu (cho filter)
+    // === 6️⃣ Dữ liệu filter (danh mục + thương hiệu) ===
     $category_list = Category::where('status', 1)->get();
     $brand_list = Brand::where('status', 1)->get();
 
     return view('frontend.product', compact('product_list', 'category_list', 'brand_list'));
 }
+
 
 
     // Hàm search

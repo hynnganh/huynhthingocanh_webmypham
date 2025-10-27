@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto px-2">
             <button type="button" onclick="history.back()"
                 class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-400 transition">
-                Quay lại
+                <i class="fas fa-arrow-left mr-2"></i> Quay lại
             </button>
             <br><br>
         </div>
@@ -118,7 +118,8 @@
                                     <p class="text-sm text-gray-500 line-clamp-2">{{ $coupon['condition'] }}</p>
                                 </div>
                                 <div class="flex space-x-2 mt-auto">
-                                    <button onclick="openModal('{{ $coupon['code'] }}', '{{ $coupon['discount'] }}', '{{ $coupon['condition'] }}')"
+                                    {{-- Cần thêm Modal HTML để hàm openModal hoạt động --}}
+                                    <button onclick="alert('Tính năng chi tiết mã khuyến mãi cần modal hiển thị!')"
                                             class="flex-1 border border-pink-500 text-pink-500 font-semibold text-sm px-2 py-1 rounded-lg hover:bg-pink-50 transition duration-150">
                                         Chi tiết
                                     </button>
@@ -151,28 +152,30 @@
                     $user = Auth::user();
                     $canReview = false;
                     if ($user) {
+                        // Logic kiểm tra xem người dùng đã mua sản phẩm này và đơn hàng đã hoàn tất chưa
                         $canReview = DB::table('order')
                             ->join('orderdetail', 'order.id', '=', 'orderdetail.order_id')
                             ->where('order.user_id', $user->id)
                             ->where('orderdetail.product_id', $product->id)
-                            ->where('order.status', 5)
+                            ->where('order.status', 5) // status 5: Hoàn tất
                             ->exists();
                     }
                 @endphp
 
                 @if($user && $canReview)
                     {{-- ✅ Form đánh giá --}}
-                    <form action="{{ route('review.store') }}" method="POST" enctype="multipart/form-data"
-                          class="space-y-6 bg-pink-50 p-6 rounded-xl border border-pink-200 shadow-md">
+                    <form id="review-form" action="{{ route('review.store') }}" method="POST" enctype="multipart/form-data"
+                            class="space-y-6 bg-pink-50 p-6 rounded-xl border border-pink-200 shadow-md">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
 
                         {{-- Rating --}}
                         <div>
                             <label class="font-semibold text-gray-700 block mb-2">Đánh giá của bạn:</label>
-                            <div class="flex space-x-2 text-2xl text-gray-400" id="rating-stars">
+                            {{-- THAY ĐỔI: Thêm class `text-gray-400` cho ngôi sao chưa chọn --}}
+                            <div class="flex space-x-2 text-2xl" id="rating-stars">
                                 @for ($i = 1; $i <= 5; $i++)
-                                    <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition" data-value="{{ $i }}"></i>
+                                    <i class="fa-solid fa-star cursor-pointer text-gray-400 hover:text-yellow-400 transition" data-value="{{ $i }}"></i>
                                 @endfor
                             </div>
                             <input type="hidden" name="rating" id="rating" required>
@@ -182,8 +185,8 @@
                         <div>
                             <label class="font-semibold text-gray-700 block mb-2">Bình luận:</label>
                             <textarea name="comment" rows="3"
-                                      class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400"
-                                      placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+                                    class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400 focus:border-pink-400"
+                                    placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
                         </div>
 
                         {{-- Ảnh và video --}}
@@ -191,13 +194,13 @@
                             <div>
                                 <label class="font-semibold text-gray-700 block mb-2">Ảnh minh họa:</label>
                                 <input type="file" name="image" id="image" accept="image/*"
-                                       class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400">
+                                        class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400">
                                 <img id="image-preview" class="hidden mt-3 w-32 h-32 rounded-lg border border-pink-300 object-cover" />
                             </div>
                             <div>
                                 <label class="font-semibold text-gray-700 block mb-2">Video minh họa:</label>
                                 <input type="file" name="video" id="video" accept="video/*"
-                                       class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400">
+                                        class="w-full border border-pink-300 rounded-lg p-2 focus:ring-pink-400">
                                 <video id="video-preview" class="hidden mt-3 w-60 rounded-lg border border-pink-300" controls></video>
                             </div>
                         </div>
@@ -209,11 +212,11 @@
                         </div>
                     </form>
                 @elseif($user)
-                    <p class="text-gray-600 italic">
-                        ⚠️ Bạn chỉ có thể đánh giá sản phẩm sau khi đơn hàng được giao thành công.
+                    <p class="text-gray-600 italic bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        ⚠️ Bạn chỉ có thể đánh giá sản phẩm sau khi đơn hàng có chứa sản phẩm này được **giao thành công** (trạng thái Hoàn tất).
                     </p>
                 @else
-                    <p class="text-gray-600 italic">
+                    <p class="text-gray-600 italic bg-blue-50 p-4 rounded-lg border border-blue-200">
                         Vui lòng <a href="{{ route('login') }}" class="text-pink-500 font-semibold hover:underline">đăng nhập</a> để gửi đánh giá.
                     </p>
                 @endif
@@ -222,73 +225,147 @@
                 <div class="mt-8 space-y-6">
                     @forelse ($product->reviews as $review)
                         <div class="border border-pink-100 p-4 rounded-lg bg-white shadow-sm">
-                            <div class="flex items-center justify-between">
-                                <div class="font-bold text-gray-800">
+                            <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                                <div class="font-bold text-gray-800 flex items-center">
+                                    <i class="fas fa-user-circle mr-2 text-pink-500"></i>
                                     {{ $review->user->name ?? 'Người dùng ẩn danh' }}
                                 </div>
                                 <div class="text-yellow-500">
                                     @for ($i = 0; $i < $review->rating; $i++)
-                                        ★
+                                        <i class="fa-solid fa-star"></i>
                                     @endfor
                                     @for ($i = $review->rating; $i < 5; $i++)
-                                        ☆
+                                        <i class="fa-regular fa-star text-gray-300"></i>
                                     @endfor
                                 </div>
                             </div>
 
                             <p class="text-gray-700 mt-2">{{ $review->comment }}</p>
 
-                            @if($review->image)
-                                <div class="mt-3">
-                                    <img src="{{ asset($review->image) }}" alt="Ảnh đánh giá"
-     class="rounded-lg border border-pink-200 max-w-[200px]">
+                            <div class="flex space-x-4 mt-3">
+                                @if($review->image)
+                                    <div class="flex-shrink-0">
+                                        <img src="{{ asset($review->image) }}" alt="Ảnh đánh giá"
+                                            class="rounded-lg border border-pink-200 w-24 h-24 object-cover cursor-pointer hover:opacity-80 transition">
+                                    </div>
+                                @endif
 
-                                </div>
-                            @endif
-
-                            @if($review->video)
-                                <div class="mt-3">
-                                    <video width="320" controls class="rounded-lg border border-pink-200">
-<source src="{{ asset($review->video) }}" type="video/mp4">
-                                    </video>
-                                </div>
-                            @endif
+                                @if($review->video)
+                                    <div class="flex-shrink-0">
+                                        <video width="200" controls class="rounded-lg border border-pink-200">
+                                            <source src="{{ asset($review->video) }}" type="video/mp4">
+                                        </video>
+                                    </div>
+                                @endif
+                            </div>
+                            <p class="text-xs text-gray-400 text-right mt-2">{{ $review->created_at->format('d/m/Y') }}</p>
                         </div>
                     @empty
-                        <p class="text-gray-500 italic">Chưa có đánh giá nào cho sản phẩm này.</p>
+                        <p class="text-gray-500 italic p-4 bg-gray-50 rounded-lg text-center">Chưa có đánh giá nào cho sản phẩm này.</p>
                     @endforelse
                 </div>
             </div>
         </div>
     </main>
 
-    {{-- Script Preview & Rating --}}
+    {{-- Thư viện Font Awesome 6 (fa-solid, fa-regular) để fix lỗi ô vuông --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    {{-- Script Preview, Rating và Đồng bộ số lượng --}}
     <script>
-    document.getElementById('image').addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) {
-            const preview = document.getElementById('image-preview');
-            preview.src = URL.createObjectURL(file);
-            preview.classList.remove('hidden');
-        }
-    });
-    document.getElementById('video').addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (file) {
-            const preview = document.getElementById('video-preview');
-            preview.src = URL.createObjectURL(file);
-            preview.classList.remove('hidden');
-        }
-    });
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Đồng bộ số lượng giữa Input và Form Hidden ---
+            const quantityInput = document.getElementById('product-quantity');
+            const cartQuantityInput = document.getElementById('cart-quantity-input');
+            const buyNowQuantityInput = document.getElementById('buy-now-quantity-input');
 
-    const stars = document.querySelectorAll('#rating-stars i');
-    const ratingInput = document.getElementById('rating');
-    stars.forEach(star => {
-        star.addEventListener('click', () => {
-            const value = parseInt(star.dataset.value);
-            ratingInput.value = value;
-            stars.forEach(s => s.classList.toggle('text-yellow-400', s.dataset.value <= value));
+            const updateHiddenQuantity = () => {
+                const qty = quantityInput.value;
+                if (cartQuantityInput) cartQuantityInput.value = qty;
+                if (buyNowQuantityInput) buyNowQuantityInput.value = qty;
+            };
+
+            // Cập nhật ngay khi giá trị thay đổi
+            if (quantityInput) {
+                quantityInput.addEventListener('input', updateHiddenQuantity);
+            }
+
+
+            // --- Xem trước Ảnh và Video trong Form đánh giá ---
+            document.getElementById('image')?.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const preview = document.getElementById('image-preview');
+                    preview.src = URL.createObjectURL(file);
+                    preview.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('video')?.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const preview = document.getElementById('video-preview');
+                    preview.src = URL.createObjectURL(file);
+                    preview.classList.remove('hidden');
+                }
+            });
+
+            // --- Logic Rating Star ---
+            const starsContainer = document.getElementById('rating-stars');
+            const ratingInput = document.getElementById('rating');
+
+            if (starsContainer) {
+                const stars = starsContainer.querySelectorAll('i');
+                stars.forEach(star => {
+                    // Xử lý khi click
+                    star.addEventListener('click', () => {
+                        const value = parseInt(star.dataset.value);
+                        ratingInput.value = value;
+                        stars.forEach(s => {
+                            // Tô màu vàng cho các ngôi sao <= giá trị được chọn
+                            s.classList.toggle('text-yellow-500', s.dataset.value <= value);
+                            s.classList.toggle('text-gray-400', s.dataset.value > value);
+                        });
+                    });
+
+                    // Xử lý khi hover (hiển thị hiệu ứng)
+                    star.addEventListener('mouseover', () => {
+                        const value = parseInt(star.dataset.value);
+                        stars.forEach(s => {
+                            if (s.dataset.value <= value) {
+                                s.classList.add('text-yellow-400');
+                                s.classList.remove('text-gray-400');
+                            } else if (s.dataset.value > ratingInput.value) {
+                                s.classList.remove('text-yellow-400');
+                                s.classList.add('text-gray-400');
+                            }
+                        });
+                    });
+
+                    // Xử lý khi rời chuột (quay về trạng thái đã chọn)
+                    star.addEventListener('mouseout', () => {
+                        const selectedValue = parseInt(ratingInput.value || 0);
+                        stars.forEach(s => {
+                            if (s.dataset.value <= selectedValue) {
+                                s.classList.add('text-yellow-500');
+                                s.classList.remove('text-yellow-400', 'text-gray-400');
+                            } else {
+                                s.classList.add('text-gray-400');
+                                s.classList.remove('text-yellow-500', 'text-yellow-400');
+                            }
+                        });
+                    });
+                });
+            }
+
+            // --- Hàm sao chép mã khuyến mãi ---
+            window.copyCode = (code) => {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('Đã sao chép mã: ' + code);
+                }).catch(err => {
+                    console.error('Không thể sao chép: ', err);
+                });
+            };
         });
-    });
     </script>
 </x-layout-site>
