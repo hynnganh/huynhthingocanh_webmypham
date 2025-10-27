@@ -2,39 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 
-// ========== FRONTEND CONTROLLERS ==========
-use App\Http\Controllers\frontend\{
-    HomeController,
-    ProductController as FrontendProductController,
-    ContactController as FrontendContactController,
-    CartController,
-    CategoryController as FrontendCategoryController,
-    PostController as FrontendPostController,
-    AuthController as FrontendAuthController,
-    ReviewController
-};
-use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\frontend\HomeController;
+use App\Http\Controllers\frontend\ProductController as FrontendProductController;
+use App\Http\Controllers\frontend\ContactController as FrontendContactController;
+use App\Http\Controllers\frontend\CartController; 
+use App\Http\Controllers\frontend\CategoryController as FrontendCategoryController; 
+use App\Http\Controllers\frontend\PostController as FrontendPostController; 
+use App\Http\Controllers\frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\GeminiController;
+use App\Http\Controllers\frontend\ReviewController;
+use App\Http\Controllers\WishlistController;
 
-// ========== BACKEND CONTROLLERS ==========
-use App\Http\Controllers\backend\{
-    DashboardController,
-    AuthController as BackendAuthController,
-    ProductController as BackendProductController,
-    BannerController as BackendBannerController,
-    CategoryController as BackendCategoryController,
-    PostController as BackendPostController,
-    TopicController as BackendTopicController,
-    BrandController as BackendBrandController,
-    MenuController as BackendMenuController,
-    ContactController as BackendContactController,
-    UserController as BackendUserController,
-    OrderController as BackendOrderController
-};
+use App\Http\Controllers\backend\DashboardController;
+use App\Http\Controllers\backend\AuthController as BackendAuthController;
+use App\Http\Controllers\backend\ProductController as BackendProductController;
+use App\Http\Controllers\backend\BannerController as BackendBannerController;
+use App\Http\Controllers\backend\CategoryController as BackendCategoryController;
+use App\Http\Controllers\backend\PostController as BackendPostController;
+use App\Http\Controllers\backend\TopicController as BackendTopicController;
+use App\Http\Controllers\backend\BrandController as BackendBrandController;
+use App\Http\Controllers\backend\MenuController as BackendMenuController;
+use App\Http\Controllers\backend\ContactController as BackendContactController;
+use App\Http\Controllers\backend\UserController as BackendUserController;
+use App\Http\Controllers\backend\OrderController as BackendOrderController;
 
 // ====================== FRONTEND ======================
 Route::get('/', [HomeController::class, 'index'])->name('site.home');
-
 Route::get('/san-pham', [FrontendProductController::class, 'index'])->name('site.product');
 Route::get('/san-pham/{slug}', [FrontendProductController::class, 'detail'])->name('site.product-detail');
 Route::get('/search', [FrontendProductController::class, 'search'])->name('product.search');
@@ -48,84 +41,102 @@ Route::get('/bai-viet/{post}', [FrontendPostController::class, 'show'])->name('s
 Route::get('/danh-muc/{slug}', [FrontendCategoryController::class, 'showCategory'])->name('site.category.show');
 Route::view('/gioi-thieu', 'frontend.blog')->name('site.blog');
 
-// ====================== FRONTEND AUTH ======================
+/// ====================== FRONTEND AUTH ======================
 Route::controller(FrontendAuthController::class)->group(function () {
     Route::get('/dang-nhap', 'showLoginForm')->name('login');
-    Route::post('/dang-nhap', 'login');
+    Route::post('/dang-nhap', 'login');   
     Route::get('/dang-ky', 'showRegisterForm')->name('register');
     Route::post('/dang-ky', 'register');
     Route::post('/dang-xuat', 'logout')->name('logout');
 
+    // Trang account + đơn hàng
     Route::get('/tai-khoan', 'account')->name('account');
-    Route::get('/tai-khoan/don-hang/{id}', 'orderDetail')->name('account.order.detail');
-    Route::put('/account/update', 'update')->name('account.update');
+    Route::get('/tai-khoan/don-hang/{id}', [FrontendAuthController::class, 'orderDetail'])
+     ->name('account.order.detail');
+     Route::put('/account/update', [FrontendAuthController::class, 'update'])->name('account.update');
+     
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/san-pham/danh-gia', [ReviewController::class, 'store'])->name('review.store');
+});
 
-    // Wishlist
+Route::middleware('auth')->group(function () {
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/add', [WishlistController::class, 'add'])->name('wishlist.add');
     Route::post('/wishlist/remove', [WishlistController::class, 'remove'])->name('wishlist.remove');
-    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 });
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
-// ====================== CHAT AI ======================
+
+
+// Trang chat + load history
 Route::get('/chat-ai', [GeminiController::class, 'index'])->name('chat.ai.form');
+
+// Gửi prompt
 Route::post('/chat-ai', [GeminiController::class, 'ask'])->name('chat.ai');
+
+// Reset hội thoại
 Route::get('/chat-ai/reset', [GeminiController::class, 'reset'])->name('chat.ai.reset');
 
-// ====================== FORGOT PASSWORD ======================
+// Form nhập email
 Route::get('forgot-password', [FrontendAuthController::class, 'showForgotPasswordForm'])->name('password.request');
 Route::post('forgot-password', [FrontendAuthController::class, 'sendResetCode'])->name('password.sendCode');
+
+// Form nhập mã OTP + mật khẩu mới
 Route::get('reset-password', [FrontendAuthController::class, 'showResetPasswordForm'])->name('password.reset');
 Route::post('reset-password', [FrontendAuthController::class, 'resetPassword'])->name('password.update');
+
 
 // ====================== CART ======================
 Route::prefix('cart')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/add', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/update', [CartController::class, 'update'])->name('cart.update');
-    Route::post('/remove', [CartController::class, 'remove'])->name('cart.remove');
-    Route::post('/clear', [CartController::class, 'clear'])->name('cart.clear');
-    Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+    Route::post('add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('update', [CartController::class, 'update'])->name('cart.update');
+    Route::post('remove', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::get('checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
-    Route::post('/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
+    Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
 
-    Route::post('/store-order', [CartController::class, 'storeOrder'])->name('cart.storeOrder');
-    Route::post('/store-order-online', [CartController::class, 'storeOrderOnline'])->name('cart.storeOrderOnline');
+    Route::post('store-order', [CartController::class, 'storeOrder'])->name('cart.storeOrder');
+    Route::post('store-order-online', [CartController::class, 'storeOrderOnline'])->name('cart.storeOrderOnline');
 
-    Route::get('/qr-code/{order}', [CartController::class, 'getQrCode'])->name('cart.qrCode');
-    Route::post('/confirm-payment/{order}', [CartController::class, 'confirmPayment'])->name('cart.confirmPayment');
+    // Lấy QR code
+    Route::get('qr-code/{order}', [CartController::class, 'getQrCode'])->name('cart.qrCode');
+
+    // ✅ Xác nhận đã chuyển tiền (POST)
+    Route::post('confirm-payment/{order}', [CartController::class, 'confirmPayment'])
+        ->name('cart.confirmPayment');
 });
+
 
 // ====================== ADMIN AUTH ======================
 Route::get('/admin/login', [BackendAuthController::class, 'showAdminLoginForm'])->name('admin.login.form');
 Route::post('/admin/login', [BackendAuthController::class, 'adminLogin'])->name('admin.login');
-Route::post('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
+Route::get('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
 
 // ====================== ADMIN ======================
-Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->group(function () {
+Route::prefix('admin')->group(function () {
+
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // PRODUCT
+    // ----- PRODUCT -----
     Route::prefix('product')->group(function () {
         Route::get('trash', [BackendProductController::class, 'trash'])->name('product.trash');
         Route::get('delete/{product}', [BackendProductController::class, 'delete'])->name('product.delete');
         Route::get('restore/{product}', [BackendProductController::class, 'restore'])->name('product.restore');
         Route::get('status/{product}', [BackendProductController::class, 'status'])->name('product.status');
-        Route::post('import', [BackendProductController::class, 'import'])->name('product.import');
+        Route::post('/import-product', [BackendProductController::class, 'import'])->name('product.import');
     });
     Route::resource('product', BackendProductController::class);
 
-    // INVENTORY
     Route::prefix('inventory')->group(function () {
-        Route::get('/', [BackendProductController::class, 'inventory'])->name('inventory.index');
-        Route::post('update/{product}', [BackendProductController::class, 'updateInventory'])->name('inventory.update');
-    });
+    Route::get('/', [BackendProductController::class, 'inventory'])->name('inventory.index'); // danh sách tồn kho
+    Route::post('update/{product}', [BackendProductController::class, 'updateInventory'])->name('inventory.update'); // cập nhật số lượng
+});
 
-    // BANNER
+    // ----- BANNER -----
     Route::prefix('banner')->group(function () {
         Route::get('trash', [BackendBannerController::class, 'trash'])->name('banner.trash');
         Route::get('delete/{banner}', [BackendBannerController::class, 'delete'])->name('banner.delete');
@@ -134,7 +145,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('banner', BackendBannerController::class);
 
-    // CATEGORY
+    // ----- CATEGORY -----
     Route::prefix('category')->group(function () {
         Route::get('trash', [BackendCategoryController::class, 'trash'])->name('category.trash');
         Route::get('delete/{category}', [BackendCategoryController::class, 'delete'])->name('category.delete');
@@ -143,7 +154,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('category', BackendCategoryController::class);
 
-    // BRAND
+    // ----- BRAND -----
     Route::prefix('brand')->group(function () {
         Route::get('trash', [BackendBrandController::class, 'trash'])->name('brand.trash');
         Route::get('delete/{brand}', [BackendBrandController::class, 'delete'])->name('brand.delete');
@@ -152,7 +163,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('brand', BackendBrandController::class);
 
-    // POST
+    // ----- POST -----
     Route::prefix('post')->group(function () {
         Route::get('trash', [BackendPostController::class, 'trash'])->name('post.trash');
         Route::get('delete/{post}', [BackendPostController::class, 'delete'])->name('post.delete');
@@ -161,7 +172,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('post', BackendPostController::class);
 
-    // TOPIC
+    // ----- TOPIC -----
     Route::prefix('topic')->group(function () {
         Route::get('trash', [BackendTopicController::class, 'trash'])->name('topic.trash');
         Route::get('delete/{topic}', [BackendTopicController::class, 'delete'])->name('topic.delete');
@@ -170,7 +181,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('topic', BackendTopicController::class);
 
-    // MENU
+    // ----- MENU -----
     Route::prefix('menu')->group(function () {
         Route::get('trash', [BackendMenuController::class, 'trash'])->name('menu.trash');
         Route::get('delete/{menu}', [BackendMenuController::class, 'delete'])->name('menu.delete');
@@ -179,7 +190,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('menu', BackendMenuController::class);
 
-    // CONTACT
+    // ----- CONTACT -----
     Route::prefix('contact')->group(function () {
         Route::get('trash', [BackendContactController::class, 'trash'])->name('contact.trash');
         Route::get('delete/{contact}', [BackendContactController::class, 'delete'])->name('contact.delete');
@@ -189,7 +200,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('contact', BackendContactController::class);
 
-    // USER
+    // ----- USER -----
     Route::prefix('user')->group(function () {
         Route::get('trash', [BackendUserController::class, 'trash'])->name('user.trash');
         Route::get('delete/{user}', [BackendUserController::class, 'delete'])->name('user.delete');
@@ -198,7 +209,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
     });
     Route::resource('user', BackendUserController::class);
 
-    // ORDER
+    // ----- ORDER -----
     Route::prefix('order')->group(function () {
         Route::get('trash', [BackendOrderController::class, 'trash'])->name('order.trash');
         Route::get('delete/{order}', [BackendOrderController::class, 'delete'])->name('order.delete');
@@ -208,9 +219,8 @@ Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->gro
         Route::post('{order}/confirm-payment', [BackendOrderController::class, 'confirmPayment'])->name('order.confirmPayment');
     });
     Route::resource('order', BackendOrderController::class);
-});
 
-// ====================== TEST DB ======================
+});
 Route::get('/test-db', function () {
     try {
         \DB::connection()->getPdo();

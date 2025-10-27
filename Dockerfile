@@ -29,7 +29,9 @@ RUN mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} \
 
 # --- Kích hoạt rewrite module của Apache ---
 RUN a2enmod rewrite
-
+# --- Cấu hình Apache ---
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # --- Chuyển Document Root về thư mục public ---
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
