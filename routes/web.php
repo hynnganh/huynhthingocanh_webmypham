@@ -117,18 +117,17 @@ Route::prefix('cart')->group(function () {
 // ================================================================
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // ---- LOGIN & AUTH ----
+    // ==== LOGIN KHÔNG DÙNG MIDDLEWARE ====
     Route::get('login', [BackendAuthController::class, 'showAdminLoginForm'])->name('login.form');
     Route::post('login', [BackendAuthController::class, 'adminLogin'])->name('login');
     Route::post('logout', [BackendAuthController::class, 'logout'])->name('logout');
 
-    // ---- ADMIN DASHBOARD & MODULES ----
+    // ==== ADMIN DASHBOARD & MODULES ====
     Route::middleware(['admin'])->group(function () {
 
-        // DASHBOARD
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        // ----- PRODUCT -----
+        // Quản lý sản phẩm
         Route::prefix('product')->name('product.')->group(function () {
             Route::get('trash', [BackendProductController::class, 'trash'])->name('trash');
             Route::get('delete/{product}', [BackendProductController::class, 'delete'])->name('delete');
@@ -138,50 +137,37 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         Route::resource('product', BackendProductController::class)->except(['show']);
 
-        // ----- INVENTORY -----
-        Route::prefix('inventory')->name('inventory.')->group(function () {
-            Route::get('/', [BackendProductController::class, 'inventory'])->name('index');
-            Route::post('update/{product}', [BackendProductController::class, 'updateInventory'])->name('update');
-        });
-
-        // ----- BANNER -----
+        // Các module khác giữ nguyên
         Route::resource('banner', BackendBannerController::class)->except(['show']);
         Route::get('banner/{banner}/status', [BackendBannerController::class, 'status'])->name('banner.status');
 
-        // ----- CATEGORY -----
         Route::resource('category', BackendCategoryController::class)->except(['show']);
         Route::get('category/{category}/status', [BackendCategoryController::class, 'status'])->name('category.status');
 
-        // ----- BRAND -----
         Route::resource('brand', BackendBrandController::class)->except(['show']);
         Route::get('brand/{brand}/status', [BackendBrandController::class, 'status'])->name('brand.status');
 
-        // ----- POST -----
         Route::resource('post', BackendPostController::class)->except(['show']);
         Route::get('post/{post}/status', [BackendPostController::class, 'status'])->name('post.status');
 
-        // ----- TOPIC -----
         Route::resource('topic', BackendTopicController::class)->except(['show']);
         Route::get('topic/{topic}/status', [BackendTopicController::class, 'status'])->name('topic.status');
 
-        // ----- MENU -----
         Route::resource('menu', BackendMenuController::class)->except(['show']);
         Route::get('menu/{menu}/status', [BackendMenuController::class, 'status'])->name('menu.status');
 
-        // ----- CONTACT -----
         Route::resource('contact', BackendContactController::class)->except(['show']);
         Route::get('contact/{contact}/reply', [BackendContactController::class, 'reply'])->name('contact.reply');
 
-        // ----- USER -----
         Route::resource('user', BackendUserController::class)->except(['show']);
         Route::get('user/{user}/status', [BackendUserController::class, 'status'])->name('user.status');
 
-        // ----- ORDER -----
         Route::resource('order', BackendOrderController::class)->except(['create', 'edit']);
         Route::post('order/{order}/status', [BackendOrderController::class, 'status'])->name('order.status');
         Route::post('order/{order}/confirm-payment', [BackendOrderController::class, 'confirmPayment'])->name('order.confirmPayment');
     });
 });
+
 // ================================================================
 // 🧪 TEST DATABASE
 // ================================================================
