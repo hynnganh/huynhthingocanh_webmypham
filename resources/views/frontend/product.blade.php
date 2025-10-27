@@ -1,117 +1,91 @@
 <x-layout-site>
-    <x-slot:title>
-        Sản phẩm
-    </x-slot:title>
+    <x-slot:title>Sản phẩm</x-slot:title>
 
     <main class="bg-gray-50 min-h-screen py-8">
         <div class="container mx-auto px-4">
 
             {{-- 🔍 Bộ lọc --}}
             <div class="bg-white p-5 rounded-2xl shadow-sm mb-8 border border-gray-100">
-                <div class="flex justify-between items-center mb-4 lg:hidden">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <h1 class="text-2xl font-bold text-pink-600">Sản phẩm</h1>
-                    <button id="openFilterBtn"
-                        onclick="document.getElementById('filter-wrapper').classList.toggle('hidden')"
-                        class="bg-pink-500 text-white font-medium py-2 px-4 rounded-lg shadow hover:bg-pink-600 transition flex items-center gap-1">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4h18M4 8h16M5 12h14M6 16h12M7 20h10"></path>
-                        </svg>
-                        Bộ lọc
-                    </button>
-                </div>
 
-                {{-- Bộ lọc tổng hợp --}}
-                <div id="filter-wrapper" class="hidden lg:block">
+                    {{-- Bộ lọc gọn --}}
                     <form method="GET" action="{{ route('site.product') }}" id="filterForm"
-                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          class="flex flex-wrap gap-3 items-center">
 
-                        {{-- Giữ lại sort --}}
-                        @if(request('sort'))
-                            <input type="hidden" name="sort" value="{{ request('sort') }}">
-                        @endif
-
-                        {{-- Lọc theo giá --}}
-                        <div class="border rounded-xl bg-white overflow-hidden">
-                            <details open>
-                                <summary
-                                    class="flex justify-between items-center p-3 cursor-pointer bg-gray-50 font-semibold text-pink-600 hover:bg-gray-100">
-                                    Giá
-                                    <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </summary>
-                                <div class="p-4">
-                                    <div id="price-slider" class="mt-2"></div>
-                                    <input type="hidden" id="min_price" name="min" value="{{ request('min', 0) }}">
-                                    <input type="hidden" id="max_price" name="max" value="{{ request('max', 10000000) }}">
-                                    <div class="flex justify-between text-sm font-medium text-gray-600 mt-4">
-                                        <span id="min-label"></span>
-                                        <span id="max-label"></span>
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
-
-                        {{-- Danh mục --}}
-                        <div class="border rounded-xl bg-white overflow-hidden">
-                            <details>
-                                <summary
-                                    class="flex justify-between items-center p-3 cursor-pointer bg-gray-50 font-semibold text-pink-600 hover:bg-gray-100">
-                                    Danh mục
-                                    <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </summary>
-                                <div class="p-4 max-h-48 overflow-y-auto space-y-2">
-                                    @foreach ($category_list as $category)
-                                        <label class="flex items-center gap-2 text-gray-700">
-                                            <input type="checkbox" name="category_slug[]" value="{{ $category->slug }}"
-                                                {{ in_array($category->slug, (array) request('category_slug', [])) ? 'checked' : '' }}
-                                                class="text-pink-500 focus:ring-pink-400 rounded">
-                                            <span>{{ $category->name }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </details>
-                        </div>
-
-                        {{-- Thương hiệu --}}
-                        <div class="border rounded-xl bg-white overflow-hidden">
-                            <details>
-                                <summary
-                                    class="flex justify-between items-center p-3 cursor-pointer bg-gray-50 font-semibold text-pink-600 hover:bg-gray-100">
-                                    Thương hiệu
-                                    <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </summary>
-                                <div class="p-4 max-h-48 overflow-y-auto space-y-2">
-                                    @foreach ($brand_list as $brand)
-                                        <label class="flex items-center gap-2 text-gray-700">
-                                            <input type="checkbox" name="brand_slug[]" value="{{ $brand->slug }}"
-                                                {{ in_array($brand->slug, (array) request('brand_slug', [])) ? 'checked' : '' }}
-                                                class="text-pink-500 focus:ring-pink-400 rounded">
-                                            <span>{{ $brand->name }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </details>
-                        </div>
-
-                        {{-- Nút áp dụng --}}
-                        <div class="flex items-end">
-                            <button type="submit"
-                                class="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold py-3 rounded-lg shadow hover:from-pink-600 hover:to-pink-700 transition">
-                                Áp dụng
+                        {{-- ✅ Lọc theo giá --}}
+                        <div class="relative group">
+                            <button type="button"
+                                class="flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-600 font-medium px-4 py-2 rounded-lg hover:bg-pink-100 transition">
+                                <span>💰 Giá</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
                             </button>
+                            <div
+                                class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg p-4 mt-2 z-20 w-72">
+                                <div id="price-slider"></div>
+                                <input type="hidden" id="min_price" name="min" value="{{ request('min', 0) }}">
+                                <input type="hidden" id="max_price" name="max" value="{{ request('max', 10000000) }}">
+                                <div class="flex justify-between text-sm font-medium text-gray-600 mt-3">
+                                    <span id="min-label"></span>
+                                    <span id="max-label"></span>
+                                </div>
+                            </div>
                         </div>
+
+                        {{-- ✅ Danh mục --}}
+                        <div class="relative group">
+                            <button type="button"
+                                class="flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-600 font-medium px-4 py-2 rounded-lg hover:bg-pink-100 transition">
+                                <span>📂 Danh mục</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div
+                                class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg mt-2 p-3 max-h-52 overflow-y-auto z-20 w-56">
+                                @foreach ($category_list as $category)
+                                    <label class="flex items-center gap-2 text-gray-700 hover:text-pink-600 cursor-pointer">
+                                        <input type="checkbox" name="category_slug[]" value="{{ $category->slug }}"
+                                            {{ in_array($category->slug, (array) request('category_slug', [])) ? 'checked' : '' }}
+                                            class="text-pink-500 focus:ring-pink-400 rounded">
+                                        <span>{{ $category->name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- ✅ Thương hiệu --}}
+                        <div class="relative group">
+                            <button type="button"
+                                class="flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-600 font-medium px-4 py-2 rounded-lg hover:bg-pink-100 transition">
+                                <span>🏷️ Thương hiệu</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div
+                                class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg mt-2 p-3 max-h-52 overflow-y-auto z-20 w-56">
+                                @foreach ($brand_list as $brand)
+                                    <label class="flex items-center gap-2 text-gray-700 hover:text-pink-600 cursor-pointer">
+                                        <input type="checkbox" name="brand_slug[]" value="{{ $brand->slug }}"
+                                            {{ in_array($brand->slug, (array) request('brand_slug', [])) ? 'checked' : '' }}
+                                            class="text-pink-500 focus:ring-pink-400 rounded">
+                                        <span>{{ $brand->name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- ✅ Nút áp dụng --}}
+                        <button type="submit"
+                            class="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold py-2 px-5 rounded-lg shadow hover:from-pink-600 hover:to-pink-700 transition">
+                            Áp dụng
+                        </button>
                     </form>
                 </div>
             </div>
@@ -134,7 +108,7 @@
                             <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>Giá: Cao → Thấp</option>
                         </select>
 
-                        {{-- Giữ lại filter khi đổi sắp xếp --}}
+                        {{-- Giữ lại filter --}}
                         @foreach(request()->except(['sort','page']) as $key => $value)
                             @if(is_array($value))
                                 @foreach($value as $v)
@@ -147,13 +121,13 @@
                     </form>
                 </div>
 
+                {{-- Hiển thị sản phẩm --}}
                 @if ($product_list->count())
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                         @foreach ($product_list as $product)
                             <x-product-card :productrow="$product" />
                         @endforeach
                     </div>
-
                     <div class="mt-8">
                         {{ $product_list->onEachSide(1)->links() }}
                     </div>
@@ -191,7 +165,6 @@
                 });
 
                 const fmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 });
-
                 const updateLabels = (values) => {
                     minInput.value = values[0];
                     maxInput.value = values[1];
@@ -208,7 +181,6 @@
             #price-slider .noUi-connect {
                 background: linear-gradient(to right, #ec4899, #db2777);
             }
-
             #price-slider .noUi-handle {
                 border-radius: 50%;
                 background: #fff;
@@ -217,27 +189,11 @@
                 width: 18px;
                 height: 18px;
             }
-
-            details summary {
-                list-style: none;
+            .group:hover > div {
+                display: block !important;
             }
-
-            details summary::-webkit-details-marker {
+            .group > div {
                 display: none;
-            }
-
-            details summary svg {
-                transition: transform 0.3s ease;
-            }
-
-            details[open] summary svg {
-                transform: rotate(180deg);
-            }
-
-            @media (max-width: 1023px) {
-                #filter-wrapper {
-                    display: none;
-                }
             }
         </style>
     </main>
