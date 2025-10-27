@@ -14,6 +14,8 @@ class Kernel extends HttpKernel
      * @var array<int, class-string|string>
      */
     protected $middleware = [
+        'auth' => \App\Http\Middleware\Authenticate::class, // Standard User Auth
+        'admin.auth' => \App\Http\Middleware\RedirectIfAdminUnauthenticated::class, // Admin Auth
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,

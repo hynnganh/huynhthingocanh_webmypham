@@ -103,11 +103,10 @@ Route::prefix('cart')->group(function () {
 // ====================== ADMIN AUTH ======================
 Route::get('/admin/login', [BackendAuthController::class, 'showAdminLoginForm'])->name('admin.login.form');
 Route::post('/admin/login', [BackendAuthController::class, 'adminLogin'])->name('admin.login');
-Route::get('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
+Route::post('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
 
 // ====================== ADMIN ======================
-Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
-
+Route::prefix('admin')->name('admin.')->middleware(['admin.auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // PRODUCT

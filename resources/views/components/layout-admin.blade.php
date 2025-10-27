@@ -141,7 +141,7 @@
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition duration-150 rounded-lg mx-2">
                                     <i class="fas fa-cog mr-2"></i> Cài đặt</a></li>
                             <div class="border-t my-1"></div>
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method="POST" action="{{ route('admin.logout') }}">
                                 @csrf
                                 <button type="submit"
                                     class="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition duration-150 rounded-lg mx-2">
