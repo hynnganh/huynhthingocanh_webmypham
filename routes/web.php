@@ -115,15 +115,13 @@ Route::prefix('cart')->group(function () {
 // ================================================================
 // ⚙️ ADMIN (CHỈ CHO ADMIN ĐÃ ĐĂNG NHẬP)
 // ================================================================
-Route::prefix('admin')->name('admin.')->group(function () {
-
-    // ==== LOGIN KHÔNG DÙNG MIDDLEWARE ====
-    Route::get('login', [BackendAuthController::class, 'showAdminLoginForm'])->name('login.form');
-    Route::post('login', [BackendAuthController::class, 'adminLogin'])->name('login');
-    Route::post('logout', [BackendAuthController::class, 'logout'])->name('logout');
+// ==== LOGIN KHÔNG DÙNG MIDDLEWARE ====
+    Route::get('admin/login', [BackendAuthController::class, 'showAdminLoginForm'])->name('admin.login.form');
+    Route::post('admin/login', [BackendAuthController::class, 'adminLogin'])->name('admin.login');
+    Route::post('admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
 
     // ==== ADMIN DASHBOARD & MODULES ====
-    Route::middleware(['admin'])->group(function () {
+    Route::prefix('admin')->middleware('admin')->group(function () {
 
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -166,7 +164,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('order/{order}/status', [BackendOrderController::class, 'status'])->name('order.status');
         Route::post('order/{order}/confirm-payment', [BackendOrderController::class, 'confirmPayment'])->name('order.confirmPayment');
     });
-});
 
 // ================================================================
 // 🧪 TEST DATABASE
