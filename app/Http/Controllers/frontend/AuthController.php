@@ -45,28 +45,34 @@ class AuthController extends Controller
     // Xử lý đăng ký
     public function register(RegisterUserRequest $request)
     {
+        // Tạo người dùng mới
         $user = new User();
         $user->name = $request->name;
         $user->phone = $request->phone;
         $user->email = $request->email;
         $user->address = $request->address;
         $user->username = $request->username;
-        $user->roles = 'customer';
+        $user->roles = 'customer'; // Gán mặc định
         $user->password = Hash::make($request->password);
-
+    
+        // Xử lý avatar (nếu có)
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
-            $filename = Str::slug($request->username) . '-' . time() . '.' . $file->getClientOriginalExtension();
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::slug($request->username) . '-' . time() . '.' . $extension;
             $file->move(public_path('assets/images/user'), $filename);
             $user->avatar = $filename;
         } else {
-            $user->avatar = 'default.png';
+            $user->avatar = 'default.png'; // Đặt ảnh mặc định nếu không có file
         }
-
+    
+        // Gán created_by và thời gian
         $user->created_by = Auth::id() ?? 1;
+        $user->created_at = now();
         $user->status = 1;
         $user->save();
-
+    
+        // Đăng nhập và chuyển hướng
         Auth::login($user);
         return redirect()->route('login')->with('success', 'Đăng ký thành công');
     }
@@ -118,11 +124,6 @@ class AuthController extends Controller
         3 => ['text' => 'Đang chuẩn bị hàng', 'color' => 'orange-600'],
         4 => ['text' => 'Đang giao hàng', 'color' => 'green-600'],
         5 => ['text' => 'Giao thành công', 'color' => 'teal-600'],
-        6 => ['text' => 'Đã hủy', 'color' => 'red-600'],
-        7 => ['text' => 'Hoàn trả', 'color' => 'purple-600'],
-        8 => ['text' => 'Đổi hàng', 'color' => 'indigo-600'],
-        9 => ['text' => 'Từ chối', 'color' => 'gray-600'],
-        10 => ['text' => 'Khác', 'color' => 'pink-600'],
     ];
 
     $status = $statusLabels[$order->status] ?? ['text' => 'Chưa xác định', 'color' => 'gray-500'];
@@ -203,46 +204,47 @@ class AuthController extends Controller
     }
 
 
-public function update(Request $request)
+public function update(Request $request, $id)
 {
-    $user = auth()->user();
+    // Tìm người dùng theo ID
+    $user = User::findOrFail($id);
 
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'phone' => 'nullable|string|max:20',
-        'address' => 'nullable|string|max:255',
-        'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-    ]);
-
+    // Cập nhật thông tin cơ bản
     $user->name = $request->name;
     $user->phone = $request->phone;
+    $user->email = $request->email;
     $user->address = $request->address;
+    $user->username = $request->username;
 
-    // Upload avatar
+    // Nếu có nhập mật khẩu mới thì cập nhật
+    if (!empty($request->password)) {
+        $user->password = Hash::make($request->password);
+    }
+
+    // Xử lý avatar (nếu có upload mới)
     if ($request->hasFile('avatar')) {
-        $file = $request->file('avatar');
-        
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('assets/images/user'), $filename);
-
-        if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
-            unlink(public_path('assets/images/user/' . $user->avatar));
+        // Xóa ảnh cũ (trừ khi là ảnh mặc định)
+        if ($user->avatar && $user->avatar !== 'default.png') {
+            $oldPath = public_path('assets/images/user/' . $user->avatar);
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
 
+        $file = $request->file('avatar');
+        $extension = $file->getClientOriginalExtension();
+        $filename = Str::slug($request->username) . '-' . time() . '.' . $extension;
+        $file->move(public_path('assets/images/user'), $filename);
         $user->avatar = $filename;
     }
 
+    // Cập nhật thông tin người sửa
+    $user->updated_by = Auth::id() ?? 1;
+    $user->updated_at = now();
+
+    // Lưu lại thay đổi
     $user->save();
-    return response()->json([
-        'success' => true,
-        'message' => 'Cập nhật hồ sơ thành công!',
-        'user' => $user->fresh()->toArray(),
-        'avatar_path' => $user->avatar, 
-    ], 200);
 
-
-    return redirect()->route('update')->with('success', 'Cập nhập tài khoản thành công');
-
+    return redirect()->back()->with('success', 'Cập nhật thông tin thành công');
 }
-
 }

@@ -14,64 +14,76 @@ use Illuminate\Support\Facades\DB; // Thêm DB Facade
 class ProductController extends Controller
 {
     public function index(Request $request)
-    {
-        $args = [['status', '=', 1]];
-        $listCategoryIds = [];
-        
-        // Lấy các tham số filter từ request (có thể là mảng cho Multi-select)
-        $categorySlugs = $request->input('category_slug');
-        $brandSlugs = $request->input('brand_slug');
+{
+    $args = [['status', '=', 1]];
+    $listCategoryIds = [];
 
-        // Lọc theo category_slug (Hỗ trợ nhiều slug)
-        if (!empty($categorySlugs)) {
-            $slugs = is_array($categorySlugs) ? $categorySlugs : [$categorySlugs];
-            $selectedCategories = Category::where('status', 1)->whereIn('slug', $slugs)->get();
-            
-            foreach ($selectedCategories as $category) {
-                // Hợp nhất các ID của category được chọn và các category con của chúng
-                $listCategoryIds = array_merge($listCategoryIds, $this->getListCategory($category->id));
-            }
-            $listCategoryIds = array_unique($listCategoryIds);
+    // Lọc theo danh mục (có thể chọn nhiều)
+    $categorySlugs = (array) $request->input('category_slug', []);
+    if (!empty($categorySlugs)) {
+        $selectedCategories = Category::where('status', 1)
+            ->whereIn('slug', $categorySlugs)
+            ->get();
+
+        foreach ($selectedCategories as $category) {
+            // Lấy ID danh mục cha + con
+            $listCategoryIds = array_merge($listCategoryIds, $this->getListCategory($category->id));
         }
-
-        $productQuery = Product::where($args);
-
-        // Lọc theo brand_slug (Hỗ trợ nhiều slug)
-        if (!empty($brandSlugs)) {
-            $slugs = is_array($brandSlugs) ? $brandSlugs : [$brandSlugs];
-            $brandIds = Brand::where('status', 1)->whereIn('slug', $slugs)->pluck('id')->toArray();
-            
-            if (!empty($brandIds)) {
-                $productQuery->whereIn('brand_id', $brandIds);
-            }
-        }
-        
-        // Áp dụng lọc theo danh mục
-        if (!empty($listCategoryIds)) {
-            $productQuery->whereIn('category_id', $listCategoryIds);
-        }
-
-        // Lọc theo giá
-        if ($request->filled('min') || $request->filled('max')) {
-            $min = max(0, $request->input('min', 0));
-            $max = $request->input('max', 1000000000); 
-            $productQuery->whereBetween('price_sale', [(int)$min, (int)$max]);
-        }
-
-        // Sắp xếp
-        $sort = $request->input('sort');
-        if ($sort == 'asc') $productQuery->orderBy('price_sale', 'asc');
-        elseif ($sort == 'desc') $productQuery->orderBy('price_sale', 'desc');
-        else $productQuery->orderBy('created_at', 'desc');
-
-        // 🔥🔥🔥 SỬA ĐỔI ĐỂ PHÂN TRANG 50 SẢN PHẨM MỖI TRANG 🔥🔥🔥
-        $product_list = $productQuery->paginate(50)->withQueryString(); 
-
-        $category_list = Category::where('status', 1)->get();
-        $brand_list = Brand::where('status', 1)->get();
-
-        return view('frontend.product', compact('product_list', 'category_list', 'brand_list'));
+        $listCategoryIds = array_unique($listCategoryIds);
     }
+
+    // Tạo query gốc
+    $productQuery = Product::where($args);
+
+    // Lọc theo danh mục (nếu có)
+    if (!empty($listCategoryIds)) {
+        $productQuery->whereIn('category_id', $listCategoryIds);
+    }
+
+    // Lọc theo thương hiệu (có thể chọn nhiều)
+    $brandSlugs = (array) $request->input('brand_slug', []);
+    if (!empty($brandSlugs)) {
+        $brandIds = Brand::where('status', 1)
+            ->whereIn('slug', $brandSlugs)
+            ->pluck('id')
+            ->toArray();
+
+        if (!empty($brandIds)) {
+            $productQuery->whereIn('brand_id', $brandIds);
+        }
+    }
+
+    // Lọc theo khoảng giá
+    $min = (int) $request->input('min', 0);
+    $max = (int) $request->input('max', 1000000000);
+    if ($min > 0 || $max < 1000000000) {
+        $productQuery->whereBetween('price_sale', [$min, $max]);
+    }
+
+    // Sắp xếp
+    $sort = $request->input('sort');
+    switch ($sort) {
+        case 'asc':
+            $productQuery->orderBy('price_sale', 'asc');
+            break;
+        case 'desc':
+            $productQuery->orderBy('price_sale', 'desc');
+            break;
+        default:
+            $productQuery->orderBy('created_at', 'desc');
+            break;
+    }
+
+    // Phân trang
+    $product_list = $productQuery->paginate(50)->appends($request->query());
+
+    // Danh mục & thương hiệu (cho filter)
+    $category_list = Category::where('status', 1)->get();
+    $brand_list = Brand::where('status', 1)->get();
+
+    return view('frontend.product', compact('product_list', 'category_list', 'brand_list'));
+}
+
 
     // Hàm search
     public function search(Request $request)
