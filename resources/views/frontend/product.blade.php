@@ -9,44 +9,36 @@
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <h1 class="text-2xl font-bold text-pink-600">Sản phẩm</h1>
 
-                    {{-- Bộ lọc gọn --}}
                     <form method="GET" action="{{ route('site.product') }}" id="filterForm"
-                          class="flex flex-wrap gap-3 items-center">
+                        class="flex flex-wrap gap-3 items-center">
 
-                        {{-- ✅ Lọc theo giá --}}
-                        <div class="relative group">
-                            <button type="button"
-                                class="flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-600 font-medium px-4 py-2 rounded-lg hover:bg-pink-100 transition">
-                                <span>💰 Giá</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div
-                                class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg p-4 mt-2 z-20 w-72">
-                                <div id="price-slider"></div>
-                                <input type="hidden" id="min_price" name="min" value="{{ request('min', 0) }}">
-                                <input type="hidden" id="max_price" name="max" value="{{ request('max', 10000000) }}">
-                                <div class="flex justify-between text-sm font-medium text-gray-600 mt-3">
-                                    <span id="min-label"></span>
-                                    <span id="max-label"></span>
-                                </div>
-                            </div>
+                        {{-- ✅ Lọc theo giá (nhập trực tiếp) --}}
+                        <div class="flex items-center gap-2 bg-pink-50 border border-pink-200 rounded-lg px-3 py-2">
+                            <label class="text-pink-600 font-medium">Giá:</label>
+                            <input type="number" name="min" id="min_price" value="{{ request('min') }}"
+                                placeholder="Từ"
+                                class="w-24 border border-pink-200 rounded px-2 py-1 text-sm 
+                                       focus:ring-pink-400 focus:border-pink-400">
+                            <span class="text-gray-400">-</span>
+                            <input type="number" name="max" id="max_price" value="{{ request('max') }}"
+                                placeholder="Đến"
+                                class="w-24 border border-pink-200 rounded px-2 py-1 text-sm 
+                                       focus:ring-pink-400 focus:border-pink-400">
                         </div>
 
                         {{-- ✅ Danh mục --}}
-                        <div class="relative group">
-                            <button type="button"
+                        {{-- THAY ĐỔI: Xóa class 'group', thêm ID và data-dropdown --}}
+                        <div class="relative" id="categoryDropdownWrapper">
+                            <button type="button" data-dropdown-toggle="category-list"
                                 class="flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-600 font-medium px-4 py-2 rounded-lg hover:bg-pink-100 transition">
-                                <span>📂 Danh mục</span>
+                                <span>Danh mục</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
-                            <div
-                                class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg mt-2 p-3 max-h-52 overflow-y-auto z-20 w-56">
+                            {{-- THAY ĐỔI: Thêm ID, Giữ hidden để ẩn mặc định --}}
+                            <div id="category-list"
+                                class="absolute hidden bg-white border border-gray-200 rounded-lg shadow-lg mt-2 p-3 max-h-52 overflow-y-auto z-20 w-56">
                                 @foreach ($category_list as $category)
                                     <label class="flex items-center gap-2 text-gray-700 hover:text-pink-600 cursor-pointer">
                                         <input type="checkbox" name="category_slug[]" value="{{ $category->slug }}"
@@ -59,17 +51,18 @@
                         </div>
 
                         {{-- ✅ Thương hiệu --}}
-                        <div class="relative group">
-                            <button type="button"
+                        {{-- THAY ĐỔI: Xóa class 'group', thêm ID và data-dropdown --}}
+                        <div class="relative" id="brandDropdownWrapper">
+                            <button type="button" data-dropdown-toggle="brand-list"
                                 class="flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-600 font-medium px-4 py-2 rounded-lg hover:bg-pink-100 transition">
-                                <span>🏷️ Thương hiệu</span>
+                                <span>Thương hiệu</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
-                            <div
-                                class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg mt-2 p-3 max-h-52 overflow-y-auto z-20 w-56">
+                            {{-- THAY ĐỔI: Thêm ID, Giữ hidden để ẩn mặc định --}}
+                            <div id="brand-list"
+                                class="absolute hidden bg-white border border-gray-200 rounded-lg shadow-lg mt-2 p-3 max-h-52 overflow-y-auto z-20 w-56">
                                 @foreach ($brand_list as $brand)
                                     <label class="flex items-center gap-2 text-gray-700 hover:text-pink-600 cursor-pointer">
                                         <input type="checkbox" name="brand_slug[]" value="{{ $brand->slug }}"
@@ -86,6 +79,12 @@
                             class="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold py-2 px-5 rounded-lg shadow hover:from-pink-600 hover:to-pink-700 transition">
                             Áp dụng
                         </button>
+
+                        {{-- ❌ Nút xóa bộ lọc --}}
+                        <a href="{{ route('site.product') }}"
+                            class="bg-gray-100 border border-gray-300 text-gray-600 font-medium py-2 px-5 rounded-lg shadow hover:bg-gray-200 transition">
+                            Xóa bộ lọc
+                        </a>
                     </form>
                 </div>
             </div>
@@ -97,7 +96,7 @@
                         Hiển thị {{ $product_list->count() }} / {{ $product_list->total() }} sản phẩm
                     </h2>
 
-                    {{-- Bộ sắp xếp --}}
+                    {{-- Bộ sắp xếp (Giữ nguyên) --}}
                     <form method="GET" action="{{ route('site.product') }}" id="sortForm"
                         class="flex items-center gap-2 ml-auto">
                         <label for="sort" class="text-sm text-gray-600">Sắp xếp:</label>
@@ -139,62 +138,59 @@
             </section>
         </div>
 
-        {{-- 📦 noUiSlider --}}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+        {{-- ⚙️ Script click dropdown + validate giá --}}
         <script>
             document.addEventListener("DOMContentLoaded", () => {
-                const slider = document.getElementById('price-slider');
-                const minInput = document.getElementById('min_price');
-                const maxInput = document.getElementById('max_price');
-                const minLabel = document.getElementById('min-label');
-                const maxLabel = document.getElementById('max-label');
+                // Logic cho Dropdown (sử dụng click)
+                const dropdownButtons = document.querySelectorAll('[data-dropdown-toggle]');
 
-                const startMin = Number(minInput.value) || 0;
-                const startMax = Number(maxInput.value) || 10000000;
+                dropdownButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
+                        
+                        const targetId = button.getAttribute('data-dropdown-toggle');
+                        const dropdown = document.getElementById(targetId);
 
-                noUiSlider.create(slider, {
-                    start: [startMin, startMax],
-                    connect: true,
-                    step: 10000,
-                    range: { 'min': 0, 'max': 10000000 },
-                    format: {
-                        to: v => Math.round(v),
-                        from: v => Number(v)
-                    }
+                        // Đóng tất cả các dropdown khác
+                        document.querySelectorAll('.absolute').forEach(d => {
+                            if (d.id !== targetId) {
+                                d.classList.add('hidden');
+                            }
+                        });
+
+                        // Mở/Đóng dropdown hiện tại
+                        dropdown.classList.toggle('hidden');
+                    });
+                });
+                
+                // Đóng dropdown khi click bên ngoài
+                document.addEventListener('click', () => {
+                    document.querySelectorAll('.absolute').forEach(d => {
+                        d.classList.add('hidden');
+                    });
                 });
 
-                const fmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 });
-                const updateLabels = (values) => {
-                    minInput.value = values[0];
-                    maxInput.value = values[1];
-                    minLabel.textContent = fmt.format(values[0]);
-                    maxLabel.textContent = fmt.format(values[1]);
-                };
+                // Giữ dropdown mở khi click bên trong nó
+                document.querySelectorAll('.absolute').forEach(dropdown => {
+                    dropdown.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                });
 
-                updateLabels(slider.noUiSlider.get());
-                slider.noUiSlider.on('update', (values) => updateLabels(values));
+
+                // Hoán đổi giá nếu nhập ngược (Giữ nguyên logic này)
+                const minInput = document.getElementById('min_price');
+                const maxInput = document.getElementById('max_price');
+                const form = document.getElementById('filterForm');
+
+                form.addEventListener('submit', (e) => {
+                    let min = parseInt(minInput.value || 0);
+                    let max = parseInt(maxInput.value || 0);
+                    if (min > 0 && max > 0 && min > max) {
+                        [minInput.value, maxInput.value] = [max, min];
+                    }
+                });
             });
         </script>
-
-        <style>
-            #price-slider .noUi-connect {
-                background: linear-gradient(to right, #ec4899, #db2777);
-            }
-            #price-slider .noUi-handle {
-                border-radius: 50%;
-                background: #fff;
-                border: 2px solid #ec4899;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-                width: 18px;
-                height: 18px;
-            }
-            .group:hover > div {
-                display: block !important;
-            }
-            .group > div {
-                display: none;
-            }
-        </style>
     </main>
 </x-layout-site>

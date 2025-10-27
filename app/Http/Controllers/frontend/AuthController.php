@@ -204,47 +204,37 @@ class AuthController extends Controller
     }
 
 
-public function update(Request $request, $id)
+public function update(Request $request)
 {
-    // Tìm người dùng theo ID
-    $user = User::findOrFail($id);
+    try {
+        $user = User::findOrFail($request->user_id);
 
-    // Cập nhật thông tin cơ bản
-    $user->name = $request->name;
-    $user->phone = $request->phone;
-    $user->email = $request->email;
-    $user->address = $request->address;
-    $user->username = $request->username;
+        // Cập nhật thông tin cơ bản
+        $user->name = $request->name;
+        $user->phone = $request->phone;
+        $user->address = $request->address;
 
-    // Nếu có nhập mật khẩu mới thì cập nhật
-    if (!empty($request->password)) {
-        $user->password = Hash::make($request->password);
-    }
-
-    // Xử lý avatar (nếu có upload mới)
-    if ($request->hasFile('avatar')) {
-        // Xóa ảnh cũ (trừ khi là ảnh mặc định)
-        if ($user->avatar && $user->avatar !== 'default.png') {
-            $oldPath = public_path('assets/images/user/' . $user->avatar);
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
-            }
+        // Nếu có upload ảnh
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/images/user'), $fileName);
+            $user->avatar = $fileName;
         }
 
-        $file = $request->file('avatar');
-        $extension = $file->getClientOriginalExtension();
-        $filename = Str::slug($request->username) . '-' . time() . '.' . $extension;
-        $file->move(public_path('assets/images/user'), $filename);
-        $user->avatar = $filename;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thông tin thành công!',
+            'user' => $user,
+            'avatar_url' => asset('assets/images/user/' . ($user->avatar ?? 'default.png'))
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Lỗi: ' . $e->getMessage()
+        ], 500);
     }
-
-    // Cập nhật thông tin người sửa
-    $user->updated_by = Auth::id() ?? 1;
-    $user->updated_at = now();
-
-    // Lưu lại thay đổi
-    $user->save();
-
-    return redirect()->back()->with('success', 'Cập nhật thông tin thành công');
 }
 }
