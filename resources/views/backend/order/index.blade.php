@@ -17,12 +17,6 @@
 
     <div class="mt-6 bg-white p-6 rounded-xl shadow-lg overflow-x-auto">
         
-        @if(session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-                <p>{{ session('success') }}</p>
-            </div>
-        @endif
-        
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
@@ -56,28 +50,19 @@
                         {{-- Thanh toán --}}
                         <td class="px-4 py-3 text-center space-y-1">
                             @if($order->payment_method == 'cod')
-                                <span class="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
-                                    <i class="fa fa-money-bill-alt mr-1"></i> COD
-                                </span>
-                            @elseif($order->payment_method == 'bank')
-                                @if($order->status == 1) 
-                                    <span class="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
-                                        <i class="fa fa-check mr-1"></i> Đã thanh toán
-                                    </span>
-                                @else
-                                    <form method="POST" action="{{ route('order.confirmPayment', $order->id) }}" class="inline-block">
-                                        @csrf
-                                        <button type="submit"
-                                                class="inline-flex items-center bg-yellow-500 text-yellow-900 font-bold hover:bg-yellow-600 px-3 py-1 rounded-lg text-xs transition duration-150 shadow-md transform hover:scale-105">
-                                            <i class="fa fa-dollar-sign mr-1"></i> Xác nhận thanh toán
-                                        </button>
-                                    </form>
-                                @endif
-                            @else
-                                <span class="inline-flex items-center bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">
-                                    {{ $order->payment_method }}
-                                </span>
-                            @endif
+    <span class="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+        <i class="fa fa-money-bill-alt mr-1"></i> COD
+    </span>
+@elseif($order->payment_method == 'bank')
+    <span class="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+        <i class="fa fa-check mr-1"></i> Đã thanh toán
+    </span>
+@else
+    <span class="inline-flex items-center bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">
+        Không rõ
+    </span>
+@endif
+
                         </td>
 
                        
@@ -88,15 +73,11 @@
                                 // Định nghĩa trạng thái và màu sắc
                                 $statusMap = [
                                     1 => ['text' => 'Chờ xác nhận', 'class' => 'bg-yellow-100 text-yellow-800'],
-                                    2 => ['text' => 'Đã xác nhận', 'class' => 'bg-blue-100 text-blue-800'],
-                                    3 => ['text' => 'Đang chuẩn bị', 'class' => 'bg-orange-100 text-orange-800'],
-                                    4 => ['text' => 'Đang giao hàng', 'class' => 'bg-green-100 text-green-800'],
-                                    5 => ['text' => 'Giao thành công', 'class' => 'bg-teal-100 text-teal-800'],
-                                    6 => ['text' => 'Đã hủy', 'class' => 'bg-red-100 text-red-800'],
-                                    7 => ['text' => 'Hoàn trả', 'class' => 'bg-purple-100 text-purple-800'],
-                                    8 => ['text' => 'Đổi hàng', 'class' => 'bg-indigo-100 text-indigo-800'],
-                                    9 => ['text' => 'Từ chối', 'class' => 'bg-gray-100 text-gray-800'],
-                                    10 => ['text' => 'Khác', 'class' => 'bg-pink-100 text-pink-800'],
+                                    2 => ['text' => 'Đang chuẩn bị', 'class' => 'bg-orange-100 text-orange-800'],
+                                    3 => ['text' => 'Đang giao hàng', 'class' => 'bg-green-100 text-green-800'],
+                                    4 => ['text' => 'Giao thành công', 'class' => 'bg-teal-100 text-teal-800'],
+                                    5 => ['text' => 'Đã hủy', 'class' => 'bg-red-100 text-red-800'],
+                                    6 => ['text' => 'Hoàn trả', 'class' => 'bg-purple-100 text-purple-800'],
                                 ];
                                 $status = $statusMap[$order->status] ?? ['text' => 'Không rõ', 'class' => 'bg-gray-200 text-gray-600'];
                             @endphp

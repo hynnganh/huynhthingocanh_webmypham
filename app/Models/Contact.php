@@ -24,4 +24,9 @@ class Contact extends Model
     ];
 
     protected $dates = ['deleted_at'];
+    // app/Models/Contact.php
+public function reply()
+{
+    return $this->belongsTo(Contact::class, 'reply_id');
+}
 }

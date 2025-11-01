@@ -12,6 +12,7 @@ use App\Models\OrderDetail;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use App\Http\Requests\RegisterUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 
 class AuthController extends Controller
 {
@@ -82,14 +83,26 @@ class AuthController extends Controller
 {
     $user = Auth::user();
 
-    // Lấy đơn hàng của user, luôn là Collection
+    // Lấy đơn hàng của user, luôn là Collection, kèm theo orderDetails và product
     $orders = Order::with('orderDetails.product')
-                   ->where('user_id', $user->id)
-                   ->orderBy('created_at', 'desc')
-                   ->get() ?? collect();
+                    ->where('user_id', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->get() ?? collect();
 
-    // Load reviews của user (nếu chưa load)
-    $user->load(['reviews.product']);
+    // Lấy tất cả product_id từ các orderDetails của user
+    $productIds = $orders->flatMap(function($order){
+        return $order->orderDetails->pluck('product_id');
+    });
+
+    // Kiểm tra xem user đã review sản phẩm nào chưa
+    $orders->each(function($order) use ($user) {
+    $order->reviewed = $order->orderDetails->every(function($item) use ($user) {
+        return \App\Models\ProductReview::where('user_id', $user->id)
+                    ->where('product_id', $item->product_id)
+                    ->exists();
+    });
+});
+
 
     return view('frontend.account', compact('user', 'orders'));
 }
@@ -97,40 +110,41 @@ class AuthController extends Controller
 
     // Chi tiết đơn hàng
     public function orderDetail($id)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    // Lấy đơn hàng của user, cùng chi tiết sản phẩm
-    $order = Order::with('orderDetails.product')
-                  ->where('id', $id)
-                  ->where('user_id', $user->id)
-                  ->firstOrFail();
+        // Lấy đơn hàng của user, cùng chi tiết sản phẩm
+        $order = Order::with('orderDetails.product')
+                        ->where('id', $id)
+                        ->where('user_id', $user->id)
+                        ->firstOrFail();
 
-    // Chuyển đổi dữ liệu chi tiết đơn hàng
-    $orderDetails = $order->orderDetails->map(function($detail) {
-        return [
-            'product_name'  => $detail->product->name ?? 'Sản phẩm đã xóa',
-            'product_image' => $detail->product->thumbnail ?? 'default.png',
-            'price'         => $detail->price_buy,
-            'quantity'      => $detail->qty,
-            'total'         => $detail->price_buy * $detail->qty,
+        // Chuyển đổi dữ liệu chi tiết đơn hàng
+        $orderDetails = $order->orderDetails->map(function($detail) {
+            return [
+                'product_name'  => $detail->product->name ?? 'Sản phẩm đã xóa',
+                'product_image' => $detail->product->thumbnail ?? 'default.png',
+                'price'         => $detail->price_buy,
+                'quantity'      => $detail->qty,
+                'total'         => $detail->price_buy * $detail->qty,
+            ];
+        });
+
+            $hasReviewed = \App\Models\ProductReview::where('user_id', $user->id)
+                    ->whereIn('product_id', $order->orderDetails->pluck('product_id'))
+                    ->exists();
+        // Tạo mảng trạng thái kèm màu sắc
+        $statusLabels = [
+            1 => ['text' => 'Chờ xác nhận', 'color' => 'yellow-600'],
+            2 => ['text' => 'Đang chuẩn bị hàng', 'color' => 'orange-600'],
+            3 => ['text' => 'Đang giao hàng', 'color' => 'green-600'],
+            4 => ['text' => 'Giao thành công', 'color' => 'teal-600'],
+            5 => ['text' => 'Đã hủy', 'color' => 'red-600'],
         ];
-    });
 
-    // Tạo mảng trạng thái kèm màu sắc
-    $statusLabels = [
-        1 => ['text' => 'Chờ xác nhận', 'color' => 'yellow-600'],
-        2 => ['text' => 'Đã xác nhận', 'color' => 'blue-600'],
-        3 => ['text' => 'Đang chuẩn bị hàng', 'color' => 'orange-600'],
-        4 => ['text' => 'Đang giao hàng', 'color' => 'green-600'],
-        5 => ['text' => 'Giao thành công', 'color' => 'teal-600'],
-    ];
+        $status = $statusLabels[$order->status] ?? ['text' => 'Chưa xác định', 'color' => 'gray-500'];
 
-    $status = $statusLabels[$order->status] ?? ['text' => 'Chưa xác định', 'color' => 'gray-500'];
-
-    return view('frontend.order-detail', compact('order', 'orderDetails', 'status'));
-}
-
+ return view('frontend.order-detail', compact('order', 'orderDetails', 'status', 'hasReviewed'));    }
 
     // Logout
     public function logout(Request $request)
@@ -165,7 +179,7 @@ class AuthController extends Controller
         session()->flash('reset_email', $request->email);
 
         return redirect()->route('password.reset')
-                         ->with('success', "Mã OTP đã gửi (giả lập): $code");
+                        ->with('success', "Mã OTP đã gửi (giả lập): $code");
     }
 
     // Hiển thị form reset password
@@ -184,8 +198,8 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)
-                    ->where('reset_code', $request->code)
-                    ->first();
+                        ->where('reset_code', $request->code)
+                        ->first();
 
         if (!$user) {
             return back()->withErrors(['code' => 'Mã xác thực không hợp lệ']);
@@ -203,38 +217,191 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Mật khẩu đã được đặt lại thành công');
     }
 
-
+    /**
+     * CẬP NHẬT: Trả về JSON cho AJAX.
+     */
 public function update(Request $request)
 {
-    try {
-        $user = User::findOrFail($request->user_id);
+    // Lấy user
+    $user = Auth::user();
+    if (!$user) {
+        return redirect()->route('account')->with('error', 'Người dùng không tồn tại!');
+    }
 
-        // Cập nhật thông tin cơ bản
-        $user->name = $request->name;
-        $user->phone = $request->phone;
-        $user->address = $request->address;
+    // Validate trực tiếp
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'username' => 'required|string|max:255|unique:user,username,' . $user->id,
+        'phone' => 'nullable|regex:/^[0-9\+]+$/|max:20', // Chỉ cho phép số và dấu +
+        'address' => 'nullable|string|max:255',
+        'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ], [
+        'name.required' => 'Tên không được để trống.',
+        'username.required' => 'Username không được để trống.',
+        'username.unique' => 'Username đã tồn tại.',
+        'phone.regex' => 'Số điện thoại chỉ được nhập số và dấu +.',
+        'avatar.image' => 'Avatar phải là file hình ảnh.',
+        'avatar.mimes' => 'Avatar phải có định dạng: jpeg, png, jpg, gif.',
+        'avatar.max' => 'Avatar dung lượng tối đa 2MB.',
+    ]);
 
-        // Nếu có upload ảnh
-        if ($request->hasFile('avatar')) {
-            $file = $request->file('avatar');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('assets/images/user'), $fileName);
-            $user->avatar = $fileName;
+    // Cập nhật thông tin
+    $user->name = $request->name;
+    $user->username = $request->username;
+    $user->phone = $request->phone;
+    $user->address = $request->address;
+
+    // Xử lý avatar
+    if ($request->hasFile('avatar')) {
+        $file = $request->file('avatar');
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('assets/images/user'), $filename);
+
+        // Xóa avatar cũ nếu không phải default.png
+        if ($user->avatar && $user->avatar != 'default.png' && file_exists(public_path('assets/images/user/' . $user->avatar))) {
+            unlink(public_path('assets/images/user/' . $user->avatar));
         }
 
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Cập nhật thông tin thành công!',
-            'user' => $user,
-            'avatar_url' => asset('assets/images/user/' . ($user->avatar ?? 'default.png'))
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Lỗi: ' . $e->getMessage()
-        ], 500);
+        $user->avatar = $filename;
     }
+
+    $user->save();
+
+    return redirect()->route('account')->with('success', 'Cập nhật thông tin thành công!');
 }
+
+public function review($id)
+{
+    $order = Order::with('orderDetails.product')->findOrFail($id);
+
+    // Chỉ cho phép review nếu đơn đã giao thành công
+    if ($order->status != 4) {
+        return redirect()->back()->with('error', 'Chỉ có thể đánh giá sau khi đơn hàng giao thành công.');
+    }
+
+    return view('frontend.order.review', compact('order'));
+}
+
+public function submitReview(Request $request, $id)
+{
+    $order = Order::with('orderDetails.product')->findOrFail($id);
+
+    foreach ($order->orderDetails as $item) {
+        $rating = $request->input("rating_{$item->product_id}");
+        $comment = $request->input("comment_{$item->product_id}");
+
+        // Nếu user đã từng đánh giá sản phẩm này thì bỏ qua
+        $existingReview = \App\Models\ProductReview::where('product_id', $item->product_id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if ($existingReview) {
+            continue;
+        }
+
+        // Xử lý ảnh (nếu có)
+        $imagePath = null;
+        if ($request->hasFile("image_{$item->product_id}")) {
+            $file = $request->file("image_{$item->product_id}");
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('assets/images/reviews'), $filename);
+            $imagePath = 'assets/images/reviews/' . $filename;
+        }
+
+        if ($rating) {
+            \App\Models\ProductReview::create([
+                'product_id' => $item->product_id,
+                'user_id' => auth()->id(),
+                'rating' => $rating,
+                'comment' => $comment,
+                'image' => $imagePath, // lưu ảnh
+            ]);
+        }
+    }
+
+    return redirect()->route('account')->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm!');
+}
+
+
+public function returnOrder($id)
+{
+    $order = Order::with('orderDetails.product')->findOrFail($id);
+
+    // Chỉ cho phép trả hàng nếu đơn giao thành công
+    if ($order->status != 4) {
+        return redirect()->back()->with('error', 'Chỉ có thể yêu cầu trả hàng sau khi đơn hàng giao thành công.');
+    }
+
+    return view('frontend.order.return', compact('order'));
+}
+
+public function submitReturn(Request $request, $id)
+{
+    $request->validate([
+        'reason' => 'required|string|max:500',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    $order = Order::findOrFail($id);
+
+    // Lưu hình minh chứng (nếu có)
+    $filename = null;
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('assets/images/returns'), $filename);
+    }
+
+    // Cập nhật trạng thái đơn hàng thành "6" (đã hủy / trả hàng)
+    $order->status = 6;
+    $order->save();
+
+    // Lưu lý do trả hàng (nếu Ngọc Ánh chưa tạo bảng riêng thì chỉ cần lưu tạm trong cột note)
+    $order->note = 'Trả hàng: ' . $request->reason;
+    $order->save();
+
+    // Nếu có bảng `order_returns` thì có thể thêm:
+    // OrderReturn::create([
+    //     'order_id' => $order->id,
+    //     'user_id' => auth()->id(),
+    //     'reason' => $request->reason,
+    //     'image' => $filename,
+    //     'status' => 'Đã yêu cầu trả hàng',
+    // ]);
+
+    return redirect()->route('account')->with('success', 'Yêu cầu trả hàng đã được gửi, đơn hàng đã chuyển sang trạng thái "Đã hủy / Trả hàng".');
+}
+
+public function viewReview($id)
+{
+    $order = Order::with('orderDetails.product')->findOrFail($id);
+
+    // Lấy danh sách đánh giá của user cho các sản phẩm trong đơn này
+    $reviews = \App\Models\ProductReview::where('user_id', auth()->id())
+                ->whereIn('product_id', $order->orderDetails->pluck('product_id'))
+                ->get()
+                ->keyBy('product_id'); // để dễ tra theo product_id trong view
+
+    return view('frontend.order.view-review', compact('order', 'reviews'));
+}
+public function cancel(Request $request, $id)
+{
+    $order = Order::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+    if($order->status != 1){
+        return redirect()->back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
+    }
+
+    $request->validate([
+        'cancel_note' => 'required|string|max:500',
+    ]);
+
+    $order->status = 5; // Đã hủy
+    $order->note = $request->cancel_note; // Ghi lý do hủy
+    $order->save();
+
+    return redirect()->back()->with('success', 'Đơn hàng đã hủy thành công.');
+}
+
+
 }

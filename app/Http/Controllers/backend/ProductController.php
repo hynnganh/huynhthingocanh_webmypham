@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\backend;
+use App\Imports\ProductImport;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -12,7 +13,6 @@ use App\Models\Brand;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Facades\File;
-use App\Http\Controllers\backend\ProductImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
@@ -186,7 +186,7 @@ public function delete($id)
     // Hiển thị danh sách tồn kho
     public function inventory()
     {
-        $products = Product::all(); // hoặc paginate nếu nhiều sản phẩm
+        $products = Product::paginate(10);
         return view('backend.inventory.index', compact('products'));
     }
 
@@ -205,7 +205,30 @@ public function delete($id)
 
      public function import(Request $request)
 {
-    Excel::import(new ProductImport, $request->file('file'));
-    return back()->with('success', 'Nhập sản phẩm thành công!');
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv'
+    ]);
+
+    try {
+        $import = new ProductImport;
+        Excel::import($import, $request->file('file'));
+
+        // Nếu có lỗi
+        if ($import->failures()->isNotEmpty()) {
+    $messages = '';
+    foreach ($import->failures() as $failure) {
+        $attributes = (array) $failure->attribute(); // ép kiểu thành mảng
+        $messages .= 'Lỗi ở dòng ' . $failure->row() . ' cột ' . implode(', ', $attributes) . ': ';
+        $messages .= implode(', ', $failure->errors()) . '<br><br>';
+    }
+    return back()->with('error', $messages);
 }
+
+
+        return back()->with('success', 'Nhập sản phẩm thành công!');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Có lỗi khi import file: ' . $e->getMessage());
+    }
+}
+
 }

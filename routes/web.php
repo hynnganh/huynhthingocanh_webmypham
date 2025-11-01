@@ -39,8 +39,18 @@ Route::get('/bai-viet', [FrontendPostController::class, 'index'])->name('site.po
 Route::get('/bai-viet/{post}', [FrontendPostController::class, 'show'])->name('site.post.show');
 
 Route::get('/danh-muc/{slug}', [FrontendCategoryController::class, 'showCategory'])->name('site.category.show');
-Route::view('/gioi-thieu', 'frontend.blog')->name('site.blog');
+Route::view('/thong-bao', 'frontend.noti')->name('site.noti');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/order/{id}/review', [FrontendAuthController::class, 'review'])->name('order.review');
+    Route::post('/order/{id}/review', [FrontendAuthController::class, 'submitReview'])->name('order.review.submit');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/order/{id}/return', [FrontendAuthController::class, 'returnOrder'])->name('order.return');
+    Route::post('/order/{id}/return', [FrontendAuthController::class, 'submitReturn'])->name('order.return.submit');
+    Route::get('/order/{id}/review/view', [FrontendAuthController::class, 'viewReview'])->name('order.review.view');
+    });
 /// ====================== FRONTEND AUTH ======================
 Route::controller(FrontendAuthController::class)->group(function () {
     Route::get('/dang-nhap', 'showLoginForm')->name('login');
@@ -54,7 +64,8 @@ Route::controller(FrontendAuthController::class)->group(function () {
     Route::get('/tai-khoan/don-hang/{id}', [FrontendAuthController::class, 'orderDetail'])
      ->name('account.order.detail');
      Route::put('/account/update', [FrontendAuthController::class, 'update'])->name('account.update');
-     
+     Route::put('/account/order/{order}/cancel', [FrontendAuthController::class, 'cancel'])->name('account.order.cancel');
+
 });
 
 Route::middleware('auth')->group(function () {
@@ -217,6 +228,9 @@ Route::prefix('admin')->group(function () {
         Route::post('{order}/status', [BackendOrderController::class, 'status'])->name('order.status');
         Route::get('{order}/edit-status', [BackendOrderController::class, 'editStatus'])->name('order.editStatus');
         Route::post('{order}/confirm-payment', [BackendOrderController::class, 'confirmPayment'])->name('order.confirmPayment');
+        // Route::get('order/{id}/review', [BackendOrderController::class, 'index'])->name('admin.order.review');
+        // Route::get('/returns', [BackendOrderController::class, 'index'])->name('admin.order.return');
+
     });
     Route::resource('order', BackendOrderController::class);
 

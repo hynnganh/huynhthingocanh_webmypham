@@ -8,11 +8,6 @@
             <!-- Contact Form Section -->
             <div class="w-full sm:w-2/3 p-6">
                 <div class="contact-form bg-white shadow-lg p-6 rounded-lg">
-                    @if(session('success'))
-                        <div class="alert alert-success mb-4 p-4 bg-green-500 text-white rounded-lg">
-                            {{ session('success') }}
-                        </div>
-                    @endif
                     <form action="{{ route('site.contact.store') }}" method="POST">
                         @csrf
 

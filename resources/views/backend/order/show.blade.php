@@ -36,15 +36,11 @@
                     <div class="p-3 border border-gray-300 bg-gray-50 rounded">
                         @switch($order->status)
                             @case(1)<span class="text-yellow-600 font-semibold">Chờ xác nhận</span>@break
-                            @case(2)<span class="text-blue-600 font-semibold">Đã xác nhận</span>@break
-                            @case(3)<span class="text-orange-600 font-semibold">Đang chuẩn bị hàng</span>@break
-                            @case(4)<span class="text-green-600 font-semibold">Đang giao hàng</span>@break
-                            @case(5)<span class="text-teal-600 font-semibold">Giao thành công</span>@break
-                            @case(6)<span class="text-red-600 font-semibold">Đã hủy</span>@break
-                            @case(7)<span class="text-purple-600 font-semibold">Hoàn trả</span>@break
-                            @case(8)<span class="text-indigo-600 font-semibold">Đổi hàng</span>@break
-                            @case(9)<span class="text-gray-600 font-semibold">Từ chối</span>@break
-                            @default<span class="text-gray-500 font-semibold">Chưa xác định</span>
+                            @case(2)<span class="text-blue-600 font-semibold">Đang chuẩn bị</span>@break
+                            @case(3)<span class="text-orange-600 font-semibold">Đang giao hàng</span>@break
+                            @case(4)<span class="text-green-600 font-semibold">Giao thành công</span>@break
+                            @case(5)<span class="text-red-600 font-semibold">Đã hủy</span>@break
+                            @case(6)<span class="text-purple-600 font-semibold">Trả hàng</span>@break
                         @endswitch
                     </div>
                 </div>
@@ -77,6 +73,52 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Chỉ hiển thị đánh giá khi đơn đã giao thành công -->
+            @if($order->status == 4)
+                <div class="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-lg font-bold mb-2">Đánh giá sản phẩm</h3>
+
+                    @foreach($orderDetails as $detail)
+                        <div class="mb-4 p-3 border border-gray-200 rounded bg-white">
+                            <div class="flex items-center space-x-4">
+                                <img src="{{ asset('assets/images/product/' . $detail['product_image']) }}" class="w-12 h-auto rounded">
+                                <div>
+                                    <p class="font-semibold">{{ $detail['product_name'] }}</p>
+                                    @if($detail['review'])
+                                        <p class="text-yellow-500">⭐ {{ $detail['review']->rating }}/5</p>
+                                        <p>{{ $detail['review']->comment }}</p>
+                                        @if($detail['review']->image)
+                                            <img src="{{ asset($detail['review']->image) }}" class="w-24 mt-2 rounded">
+                                        @endif
+                                    @else
+                                        <p class="text-gray-400 italic">Chưa có đánh giá</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <!-- Hiển thị lý do trả hàng nếu status = 6 -->
+            @if($order->status == 6)
+    <div class="mt-6 bg-red-50 p-4 rounded-lg border border-red-200">
+        <h3 class="text-lg font-bold mb-2 text-red-600">Lý do trả hàng</h3>
+        <p>{{ $order->note ?? 'Không có' }}</p>
+
+        @php
+            // Tên file ảnh trả hàng nếu có
+            $returnImage = 'assets/images/returns/' . ($order->return_image ?? null);
+        @endphp
+
+        @if(isset($order->return_image) && file_exists(public_path($returnImage)))
+            <img src="{{ asset($returnImage) }}" class="w-32 mt-2 rounded">
+        @endif
+    </div>
+@endif
+
+
         </div>
     </div>
 </x-layout-admin>

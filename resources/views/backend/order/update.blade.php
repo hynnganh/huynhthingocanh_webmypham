@@ -38,17 +38,18 @@
                     <select name="status" class="w-full p-3 border border-gray-300 bg-gray-50 rounded-md">
                         @foreach ([
                             1 => 'Chờ xác nhận',
-                            2 => 'Đã xác nhận',
-                            3 => 'Đang chuẩn bị hàng',
-                            4 => 'Đang giao hàng',
-                            5 => 'Giao thành công',
+                            2 => 'Đang chuẩn bị',
+                            3 => 'Đang giao hàng',
+                            4 => 'Giao thành công',
+                            5 => 'Đã hủy',
+                            6 => 'Trả hàng',
                         ] as $value => $label)
                             <option value="{{ $value }}" {{ $order->status == $value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="mt-6">
+                <!-- <div class="mt-6">
                     <label class="font-semibold">Trạng thái thanh toán:</label>
                     @if($order->payment_method == 'cod')
                         <div class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full mt-2">
@@ -69,7 +70,7 @@
                             </form>
                         @endif
                     @endif
-                </div>
+                </div> -->
 
                 <div class="flex justify-end mt-6">
                     <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">

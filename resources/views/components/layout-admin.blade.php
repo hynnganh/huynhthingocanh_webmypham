@@ -238,30 +238,52 @@
                             </ul>
                         </li>
                         
-                        <!-- Liên hệ -->
+                        
+                       <!-- Nhóm Quản lý đơn hàng -->
+<li class="sub-menu">
+    <button onclick="toggleSubMenu(this)"
+        class="w-full text-left text-gray-300 flex items-center justify-between p-3 rounded-xl hover:bg-gray-700 hover:text-white transition duration-200">
+        <span class="flex items-center space-x-3">
+            <i class="fas fa-truck w-5"></i>
+            <span>Quản lý đơn hàng</span>
+        </span>
+        <i class="fas fa-chevron-right text-xs transform transition-transform duration-200"></i>
+    </button>
+    
+    <ul class="sub space-y-1 pl-4 mt-1 hidden">
+        <li>
+            <a href="{{ route('order.index') }}"
+               class="text-gray-400 text-sm flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 hover:text-white transition duration-200">
+               <div class="w-2 h-2 rounded-full bg-gray-500 mr-2"></div>Đơn hàng
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('inventory.index') }}"
+               class="text-gray-400 text-sm flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 hover:text-white transition duration-200">
+               <div class="w-2 h-2 rounded-full bg-gray-500 mr-2"></div>Tồn kho
+            </a>
+        </li>
+        <!-- <li>
+            <a href=""
+               class="text-gray-400 text-sm flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 hover:text-white transition duration-200">
+               <div class="w-2 h-2 rounded-full bg-gray-500 mr-2"></div>Đánh giá
+            </a>
+        </li>
+        <li>
+            <a href=""
+               class="text-gray-400 text-sm flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 hover:text-white transition duration-200">
+               <div class="w-2 h-2 rounded-full bg-gray-500 mr-2"></div>Trả hàng
+            </a>
+        </li> -->
+    </ul>
+</li>
+
+<!-- Liên hệ -->
                         <li>
                             <a href="{{ route('contact.index') }}"
                                 class="text-gray-300 flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-700 hover:text-white transition duration-200">
                                 <i class="fa fa-phone w-5"></i>
                                 <span>Liên hệ</span>
-                            </a>
-                        </li>
-                        
-                        <!-- Quản lý đơn hàng -->
-                        <li>
-                            <a href="{{ route('order.index') }}"
-                                class="text-gray-300 flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-700 hover:text-white transition duration-200">
-                                <i class="fas fa-truck w-5"></i>
-                                <span>Quản lý đơn hàng</span>
-                            </a>
-                        </li>
-                        
-                        <!-- Tồn kho -->
-                        <li>
-                            <a href="{{ route('inventory.index') }}"
-                                class="text-gray-300 flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-700 hover:text-white transition duration-200">
-                                <i class="fa fa-box w-5"></i>
-                                <span>Tồn kho</span>
                             </a>
                         </li>
                         
@@ -319,7 +341,7 @@
                     "closeButton": true,
                     "progressBar": true,
                     "positionClass": "toast-top-right",
-                    "timeOut": "3000",
+                    "timeOut": "5000",
                     "extendedTimeOut": "1000",
                     "showEasing": "swing",
                     "hideEasing": "linear",
@@ -332,12 +354,12 @@
                 @endif
 
                 @if (session('error'))
-                    toastr.error("{{ session('error') }}");
+                    toastr.error("{!! session('error') !!}");
                 @endif
 
                 @if ($errors->any())
                     @foreach ($errors->all() as $error)
-                        toastr.error("{{ $error }}");
+                        toastr.error("{!! $error !!}");
                     @endforeach
                 @endif
             }

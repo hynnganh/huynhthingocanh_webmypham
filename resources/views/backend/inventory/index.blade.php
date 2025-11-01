@@ -67,9 +67,8 @@
             </tbody>
         </table>
         
-        {{-- Giả định có phân trang --}}
-        {{-- <div class="mt-6 p-4 border-t border-gray-100">
-            {{ $products->links() }} 
-        </div> --}}
+         <div class="mt-6 p-4">
+            {{ $products->links() }}
+        </div>
     </div>
 </x-layout-admin>
