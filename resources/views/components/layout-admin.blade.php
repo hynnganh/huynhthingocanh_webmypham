@@ -117,12 +117,14 @@
                             <!-- Avatar placeholder -->
                             <img alt="User Avatar" src="https://placehold.co/32x32/6366f1/ffffff?text={{ Auth::user()->name[0] ?? '?' }}"
                                 class="w-8 h-8 rounded-full border border-indigo-300 object-cover">
-                            @auth
-                                <span class="text-gray-700 font-medium hidden sm:block">{{ Auth::user()->name }}</span>
-                            @endauth
-                            @guest
+                            @auth('admin')
+                                <span class="text-gray-700 font-medium hidden sm:block">
+                                    {{ Auth::guard('admin')->user()->name }}
+                                </span>
+                            @else
                                 <span class="text-gray-700 font-medium hidden sm:block">Khách</span>
-                            @endguest
+                            @endauth
+
                             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
