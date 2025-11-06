@@ -121,7 +121,7 @@ Route::prefix('cart')->group(function () {
 // ====================== ADMIN AUTH ======================
 Route::get('/admin/login', [BackendAuthController::class, 'showAdminLoginForm'])->name('admin.login.form');
 Route::post('/admin/login', [BackendAuthController::class, 'adminLogin'])->name('admin.login');
-Route::get('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
+
 
 // ====================== ADMIN ======================
 Route::prefix('admin')->middleware('admin')->group(function () {
@@ -230,6 +230,8 @@ Route::prefix('admin')->middleware('admin')->group(function () {
 
     });
     Route::resource('order', BackendOrderController::class);
+
+    Route::get('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
 
 });
 Route::get('/test-db', function () {
