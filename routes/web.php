@@ -97,7 +97,7 @@ Route::post('forgot-password', [FrontendAuthController::class, 'sendResetCode'])
 // Form nhập mã OTP + mật khẩu mới
 Route::get('reset-password', [FrontendAuthController::class, 'showResetPasswordForm'])->name('password.reset');
 Route::post('reset-password', [FrontendAuthController::class, 'resetPassword'])->name('password.update');
-
+Route::post('/password/resend-otp', [FrontendAuthController::class, 'resendOtp'])->name('otp.resend');
 
 // ====================== CART ======================
 Route::prefix('cart')->group(function () {
@@ -107,16 +107,12 @@ Route::prefix('cart')->group(function () {
     Route::post('remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('clear', [CartController::class, 'clear'])->name('cart.clear');
     Route::get('checkout', [CartController::class, 'checkout'])->name('cart.checkout');
-
-    Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
-
+    Route::post('buy-now', [CartController::class, 'buyNow'])
+        ->middleware('auth')
+        ->name('cart.buyNow');
     Route::post('store-order', [CartController::class, 'storeOrder'])->name('cart.storeOrder');
     Route::post('store-order-online', [CartController::class, 'storeOrderOnline'])->name('cart.storeOrderOnline');
-
-    // Lấy QR code
     Route::get('qr-code/{order}', [CartController::class, 'getQrCode'])->name('cart.qrCode');
-
-    // ✅ Xác nhận đã chuyển tiền (POST)
     Route::post('confirm-payment/{order}', [CartController::class, 'confirmPayment'])
         ->name('cart.confirmPayment');
 });
@@ -128,7 +124,8 @@ Route::post('/admin/login', [BackendAuthController::class, 'adminLogin'])->name(
 Route::get('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
 
 // ====================== ADMIN ======================
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('admin')->group(function () {
+
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 

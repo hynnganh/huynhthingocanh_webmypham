@@ -265,8 +265,15 @@ class CartController extends Controller
     }
 
     // ========================= MUA NGAY =========================
-    public function buyNow(Request $request)
+public function buyNow(Request $request)
 {
+    // ✅ Kiểm tra đăng nhập
+    if (!auth()->check()) {
+        return redirect()->route('login')
+            ->with('error', 'Vui lòng đăng nhập để mua hàng.');
+    }
+
+    // ✅ Xác thực dữ liệu đầu vào
     $request->validate([
         'id' => 'required|exists:product,id',
         'quantity' => 'required|integer|min:1',
@@ -275,16 +282,16 @@ class CartController extends Controller
     $product = Product::findOrFail($request->id);
     $quantity = $request->quantity;
 
-    // Kiểm tra tồn kho
+    // ✅ Kiểm tra tồn kho
     if ($quantity > $product->qty) {
         return redirect()->back()->with('error', "Chỉ còn {$product->qty} sản phẩm '{$product->name}' trong kho");
     }
 
-    // Lấy giỏ hàng hiện tại
+    // ✅ Lấy giỏ hàng hiện tại
     $cart = session()->get('cart', []);
 
-    // Nếu sản phẩm đã có thì cộng dồn nhưng không vượt quá kho
-    if(isset($cart[$product->id])) {
+    // ✅ Nếu sản phẩm đã có trong giỏ → cộng dồn nhưng không vượt quá kho
+    if (isset($cart[$product->id])) {
         $newQuantity = $cart[$product->id]['quantity'] + $quantity;
         $cart[$product->id]['quantity'] = min($newQuantity, $product->qty);
     } else {
@@ -296,12 +303,13 @@ class CartController extends Controller
         ];
     }
 
-    // Lưu giỏ hàng
+    // ✅ Lưu giỏ hàng vào session
     session()->put('cart', $cart);
 
-    // Chuyển thẳng sang trang checkout
+    // ✅ Chuyển sang trang checkout
     return redirect()->route('cart.checkout')->with('success', 'Sản phẩm đã được thêm vào giỏ hàng!');
 }
+
 
 
 }

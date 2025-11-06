@@ -60,7 +60,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->delete();
 
-        return redirect()->route('admin.order.index')->with('success', 'Đơn hàng đã được chuyển vào thùng rác.');
+        return redirect()->route('order.index')->with('success', 'Đơn hàng đã được chuyển vào thùng rác.');
     }
 
     // -------------------
@@ -82,7 +82,7 @@ class OrderController extends Controller
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->restore();
 
-        return redirect()->route('admin.order.trash')->with('success', 'Đơn hàng đã được khôi phục.');
+        return redirect()->route('order.trash')->with('success', 'Đơn hàng đã được khôi phục.');
     }
 
     // -------------------
@@ -93,7 +93,7 @@ class OrderController extends Controller
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->forceDelete();
 
-        return redirect()->route('admin.order.trash')->with('success', 'Đơn hàng đã bị xóa vĩnh viễn.');
+        return redirect()->route('backend.order.trash')->with('success', 'Đơn hàng đã bị xóa vĩnh viễn.');
     }
 
     // -------------------
@@ -109,7 +109,7 @@ class OrderController extends Controller
         $order->status = $request->status;
         $order->save();
 
-        return redirect()->route('admin.order.index')->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
+        return redirect()->route('order.index')->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }
 
     // -------------------
@@ -118,7 +118,7 @@ class OrderController extends Controller
     public function editStatus($id)
     {
         $order = Order::with('orderDetails.product')->findOrFail($id);
-        return view('backend.order.update', compact('order'));
+        return view('order.update', compact('order'));
     }
 
     // -------------------

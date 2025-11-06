@@ -50,8 +50,9 @@
         </div>
             <x-voucher />
             <x-product-new />
-            <x-product-sale />
             <x-post-list />
+            <x-product-sale />
+            
     </section>
 
     <script>

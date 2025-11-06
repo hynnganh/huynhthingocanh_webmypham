@@ -90,11 +90,23 @@
                         </div>
                         
 
-                        <div class="mb-3">
-                            <label for="thumbnail"><strong>Hình ảnh</strong></label>
-                            <input type="file" name="thumbnail" id="thumbnail" class="w-full border border-gray-300 rounded-lg p-2">
-                            <small class="text-gray-500">Chỉ chấp nhận ảnh .jpg, .jpeg, .png (kích thước tối đa 2MB)</small>
-                        </div>
+<div class="mb-3">
+    <label for="thumbnail"><strong>Hình ảnh</strong></label>
+    <input type="file" name="thumbnail" id="thumbnail" class="w-full border border-gray-300 rounded-lg p-2" accept="image/*">
+    <small class="text-gray-500 block mb-2">Chỉ chấp nhận ảnh .jpg, .jpeg, .png (kích thước tối đa 2MB)</small>
+
+    <div class="mt-2">
+        <p class="text-sm text-gray-600 mb-1">Ảnh hiện tại / ảnh mới chọn:</p>
+        <img 
+            id="preview-image" 
+            src="{{ asset('assets/images/product/' . $product->thumbnail) }}" 
+            alt="Ảnh hiện tại" 
+            class="w-40 h-40 object-cover rounded-lg border border-gray-300"
+        >
+    </div>
+</div>
+
+
 
                         <div class="mb-3">
                             <label for="status"><strong>Trạng thái</strong></label>
@@ -133,4 +145,36 @@
             });
     </script>
 @endpush
+@push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#detail'), {
+            toolbar: [
+                'undo', 'redo', '|',
+                'heading', '|',
+                'bold', 'italic', 'underline', 'link', '|',
+                'bulletedList', 'numberedList', 'blockQuote', '|',
+                'insertTable', 'mediaEmbed'
+            ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    // 🖼️ Preview ảnh mới
+    document.getElementById('thumbnail').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('preview-image');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result; // hiển thị ảnh mới chọn
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+@endpush
+
 </x-layout-admin>

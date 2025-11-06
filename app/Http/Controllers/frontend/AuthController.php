@@ -217,6 +217,39 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Mật khẩu đã được đặt lại thành công');
     }
 
+    public function resendOtp(Request $request)
+{
+    // 1. Xác thực Email
+    $request->validate([
+        // Đảm bảo tên bảng là 'users' nếu bạn đang dùng Laravel tiêu chuẩn
+        'email' => 'required|email|exists:user,email' 
+    ]);
+
+    $user = User::where('email', $request->email)->first();
+
+    // 2. Tạo mã OTP mới và lưu vào DB
+    $code = rand(100000, 999999);
+    
+    // Lưu mã OTP mới và thời hạn (10 phút)
+    $user->reset_code = $code;
+    $user->reset_code_expire = now()->addMinutes(10); 
+    $user->save();
+
+    // 3. Gửi mã OTP (Giả lập)
+    
+    // Thay thế dòng này bằng logic gửi email thực tế (Mail::to()->send(new OTPMail($code)))
+    \Log::info("Mã OTP mới cho {$request->email} (Gửi lại): {$code}"); 
+    
+    // Lưu mã vào session *chỉ để debug/giả lập* trong quá trình phát triển
+    session()->flash('otp_code', $code); 
+
+    // 4. Trả về phản hồi JSON cho yêu cầu AJAX
+    return response()->json([
+        'success' => true,
+        'message' => 'Mã xác thực mới đã được gửi thành công đến email của bạn.',
+        'debug_code' => $code // Chỉ nên có khi đang debug
+    ], 200);
+}
     /**
      * CẬP NHẬT: Trả về JSON cho AJAX.
      */
