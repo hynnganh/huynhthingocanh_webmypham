@@ -231,7 +231,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     });
     Route::resource('order', BackendOrderController::class);
 
-    Route::get('/admin/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
+    Route::get('/logout', [BackendAuthController::class, 'logout'])->name('admin.logout');
 
 });
 Route::get('/test-db', function () {
