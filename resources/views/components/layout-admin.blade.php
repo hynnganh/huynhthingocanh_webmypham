@@ -114,9 +114,6 @@
                     <!-- User Login Dropdown Start -->
                     <div class="relative group">
                         <a class="flex items-center space-x-2 cursor-pointer p-2 rounded-full hover:bg-gray-100 transition duration-150">
-                            <!-- Avatar placeholder -->
-                            <img alt="User Avatar" src="https://placehold.co/32x32/6366f1/ffffff?text={{ Auth::user()->name[0] ?? '?' }}"
-                                class="w-8 h-8 rounded-full border border-indigo-300 object-cover">
                             @auth('admin')
                                 <span class="text-gray-700 font-medium hidden sm:block">
                                     {{ Auth::guard('admin')->user()->name }}
