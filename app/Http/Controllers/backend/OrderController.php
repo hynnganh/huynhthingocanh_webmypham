@@ -109,7 +109,7 @@ class OrderController extends Controller
         $order->status = $request->status;
         $order->save();
 
-        return redirect()->route('backend.order.index')->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
+        return redirect()->route('order.index')->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }
 
     // -------------------
