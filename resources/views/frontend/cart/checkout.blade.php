@@ -89,7 +89,7 @@
         <!-- Hiển thị QR Code -->
         <div id="qrContainer" class="mt-6 hidden text-center">
             <h3 class="text-lg font-semibold mb-2">Quét mã để thanh toán</h3>
-            <img id="qrImage" src="" alt="QR Code" class="border p-2 rounded-lg mx-auto mb-2">
+<img id="qrImage" src="" alt="QR Code" class="border p-2 rounded-lg mx-auto mb-2 w-36 h-36">
             <div class="font-bold text-xl text-red-600">
                 Số tiền: <span id="qrAmount">
                     {{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart))) }} VNĐ

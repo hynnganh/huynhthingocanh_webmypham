@@ -7,7 +7,9 @@
                 <div class="flex flex-col sm:flex-row items-center p-4">
                     <!-- Thumbnail -->
                     <div class="w-full sm:w-1/3 h-48 overflow-hidden mb-4 sm:mb-0">
-                        <img src="{{ asset('assets/images/post/'.$post->thumbnail) }}" alt="{{ $post->title }}" class="w-full h-full object-cover rounded-md">
+<img src="{{ $post->thumbnail ? asset('assets/images/post/'.$post->thumbnail) : asset('assets/images/default.png') }}" 
+     alt="{{ $post->title }}" class="w-full h-full object-cover rounded-md">
+
                     </div>
 
                     <!-- Title and Detail -->

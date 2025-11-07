@@ -12,6 +12,7 @@ use App\Http\Controllers\frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\GeminiController;
 use App\Http\Controllers\frontend\ReviewController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\frontend\BrandController as FrontendBrandController;
 
 use App\Http\Controllers\backend\DashboardController;
 use App\Http\Controllers\backend\AuthController as BackendAuthController;
@@ -37,7 +38,7 @@ Route::post('/lien-he', [FrontendContactController::class, 'store'])->name('site
 
 Route::get('/bai-viet', [FrontendPostController::class, 'index'])->name('site.post.index');
 Route::get('/bai-viet/{post}', [FrontendPostController::class, 'show'])->name('site.post.show');
-
+Route::get('/thuong-hieu/{slug}', [FrontendBrandController::class, 'show'])->name('site.brand.show');
 Route::get('/danh-muc/{slug}', [FrontendCategoryController::class, 'showCategory'])->name('site.category.show');
 Route::view('/thong-bao', 'frontend.noti')->name('site.noti');
 
@@ -81,15 +82,9 @@ Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wi
 
 
 
-// Trang chat + load history
 Route::get('/chat-ai', [GeminiController::class, 'index'])->name('chat.ai.form');
-
-// Gửi prompt
-Route::post('/chat-ai', [GeminiController::class, 'ask'])->name('chat.ai');
-
-// Reset hội thoại
-Route::get('/chat-ai/reset', [GeminiController::class, 'reset'])->name('chat.ai.reset');
-
+Route::post('/chat-ai/ask', [GeminiController::class, 'ask'])->name('chat.ai.ask');
+Route::post('/chat-ai/reset', [GeminiController::class, 'reset'])->name('chat.ai.reset');
 // Form nhập email
 Route::get('forgot-password', [FrontendAuthController::class, 'showForgotPasswordForm'])->name('password.request');
 Route::post('forgot-password', [FrontendAuthController::class, 'sendResetCode'])->name('password.sendCode');
