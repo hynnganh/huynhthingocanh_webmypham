@@ -118,7 +118,7 @@ class OrderController extends Controller
     public function editStatus($id)
     {
         $order = Order::with('orderDetails.product')->findOrFail($id);
-        return view('order.update', compact('order'));
+        return view('backend.order.update', compact('order'));
     }
 
     // -------------------
