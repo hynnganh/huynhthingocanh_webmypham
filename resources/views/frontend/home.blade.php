@@ -119,7 +119,7 @@
         <blockquote class="tiktok-embed" 
             cite="https://www.tiktok.com/@sophia.beauty99/video/7468328481105906952" 
             data-video-id="7468328481105906952" 
-            style="max-width: 325px;">
+            style="max-width: 250px;">
             <section></section>
         </blockquote>
 
@@ -127,7 +127,7 @@
         <blockquote class="tiktok-embed" 
             cite="https://www.tiktok.com/@hnhu2804/video/7374492734234594568" 
             data-video-id="7374492734234594568" 
-            style="max-width: 325px;">
+            style="max-width: 250px;">
             <section></section>
         </blockquote>
 
@@ -135,7 +135,7 @@
         <blockquote class="tiktok-embed" 
             cite="https://www.tiktok.com/@quynh_thuhai/video/7302786535718489345" 
             data-video-id="7302786535718489345" 
-            style="max-width: 325px;">
+            style="max-width: 250px;">
             <section></section>
         </blockquote>
     </div>
